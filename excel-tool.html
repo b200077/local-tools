@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>安全 Excel 轉 CSV/JSON - 100% 本地隱私安全</title>
+    <!-- 引入 SheetJS 核心庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            text-align: center;
+            background-color: #2d2d2d;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-width: 600px;
+            width: 90%;
+        }
+        #drop-zone {
+            border: 2px dashed #2196F3;
+            border-radius: 8px;
+            padding: 40px 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-bottom: 20px;
+        }
+        #drop-zone:hover {
+            background-color: #1a365d;
+        }
+        .control-panel {
+            margin: 20px 0;
+            display: none; /* 讀取檔案後才顯示 */
+            background: #3a3a3a;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        select, button {
+            padding: 10px 18px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: none;
+            font-weight: bold;
+            margin: 5px;
+        }
+        select {
+            background-color: #444;
+            color: white;
+        }
+        .btn-csv { background-color: #ff9800; color: white; cursor: pointer; }
+        .btn-csv:hover { background-color: #e68a00; }
+        .btn-json { background-color: #00bcd4; color: white; cursor: pointer; }
+        .btn-json:hover { background-color: #00a4b8; }
+        #status {
+            margin-top: 15px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Excel 轉 CSV / JSON 工具</h2>
+    <p style="font-size: 14px; color: #888;">🔒 商業機密、客戶個資不外洩！100% 在本地瀏覽器完成轉檔，支援斷網操作</p>
+    
+    <div id="drop-zone">
+        <p>拖曳 Excel 檔案 (.xlsx, .xls) 到此處，或點擊選擇檔案</p>
+        <input type="file" id="file-input" accept=".xlsx, .xls" style="display: none;">
+    </div>
+
+    <!-- 檔案解析後展現的控制台 -->
+    <div id="control-panel" class="control-panel">
+        <p>請選擇要轉換的工作表 (Sheet)：</p>
+        <select id="sheet-selector"></select>
+        <div style="margin-top: 15px;">
+            <button id="to-csv-btn" class="btn-csv">轉為 CSV 下載</button>
+            <button id="to-json-btn" class="btn-json">轉為 JSON 下載</button>
+        </div>
+    </div>
+
+    <div id="status">尚未選擇檔案</div>
+</div>
+
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const controlPanel = document.getElementById('control-panel');
+    const sheetSelector = document.getElementById('sheet-selector');
+    const toCsvBtn = document.getElementById('to-csv-btn');
+    const toJsonBtn = document.getElementById('to-json-btn');
+    const statusDiv = document.getElementById('status');
+    
+    let currentWorkbook = null;
+    let currentFileName = "";
+
+    // 點擊觸發檔案選擇
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFileSelect);
+    
+    // 處理拖曳事件
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.backgroundColor = '#1a365d'; });
+    dropZone.addEventListener('dragleave', () => { dropZone.style.backgroundColor = 'transparent'; });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.backgroundColor = 'transparent';
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            handleFileSelect();
+        }
+    });
+
+    // 核心邏輯：讀取 Excel
+    function handleFileSelect() {
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        currentFileName = file.name.replace(/\.[^/.]+$/, ""); // 去除副檔名留作檔名
+        statusDiv.innerText = "⚡ 正在本地解析 Excel 中...";
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                // 使用 SheetJS 讀取二進位資料
+                currentWorkbook = XLSX.read(data, { type: 'array' });
+
+                // 清空並重新填入工作表下拉選單
+                sheetSelector.innerHTML = "";
+                currentWorkbook.SheetNames.forEach(sheetName => {
+                    const option = document.createElement('option');
+                    option.value = sheetName;
+                    option.innerText = sheetName;
+                    sheetSelector.appendChild(option);
+                });
+
+                statusDiv.innerText = `✅ 成功讀取檔案：${file.name}`;
+                controlPanel.style.display = "block"; // 顯示轉換按鈕
+            } catch (err) {
+                console.error(err);
+                statusDiv.innerText = "❌ 檔案解析失敗，請確認是否為正確的 Excel 格式。";
+                controlPanel.style.display = "none";
+            }
+        };
+        
+        // 以 ArrayBuffer 形式讀取檔案
+        reader.readAsArrayBuffer(file);
+    }
+
+    // 轉換為 CSV 並下載
+    toCsvBtn.addEventListener('click', () => {
+        if (!currentWorkbook) return;
+        const selectedSheet = sheetSelector.value;
+        const worksheet = currentWorkbook.Sheets[selectedSheet];
+        
+        // SheetJS 內建公式：直接將工作表轉成 CSV 字串
+        const csvContent = XLSX.utils.sheet_to_csv(worksheet);
+        
+        // 加上 UTF-8 BOM (\uFEFF) 確保 Excel 開啟 CSV 時不會變亂碼 (這點對台灣商務用戶超重要！)
+        triggerDownload(new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: "text/csv;charset=utf-8;" }), `${currentFileName}_${selectedSheet}.csv`);
+    });
+
+    // 轉換為 JSON 並下載
+    toJsonBtn.addEventListener('click', () => {
+        if (!currentWorkbook) return;
+        const selectedSheet = sheetSelector.value;
+        const worksheet = currentWorkbook.Sheets[selectedSheet];
+        
+        // SheetJS 內建公式：直接將工作表轉成 JSON 陣列物件
+        const jsonObject = XLSX.utils.sheet_to_json(worksheet);
+        const jsonContent = JSON.stringify(jsonObject, null, 2); // 格式化排版
+        
+        triggerDownload(new Blob([jsonContent], { type: "application/json" }), `${currentFileName}_${selectedSheet}.json`);
+    });
+
+    // 通用本地下載函式
+    function triggerDownload(blob, filename) {
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+        statusDiv.innerText = `🎉 已成功匯出 ${filename}！`;
+    }
+</script>
+
+</body>
+</html>

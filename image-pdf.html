@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>極速圖片轉 PDF - 100% 本地隱私安全</title>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7546597219509158"
+     crossorigin="anonymous"></script>
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: #2d2d2d;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-width: 500px;
+            width: 90%;
+        }
+        #drop-zone {
+            border: 2px dashed #4caf50;
+            border-radius: 8px;
+            padding: 40px 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-bottom: 20px;
+        }
+        #drop-zone:hover {
+            background-color: #384d39;
+        }
+        button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 15px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>圖片轉 PDF 工具</h2>
+    <p style="font-size: 14px; color: #888;">🔒 您的檔案絕對不會上傳到伺服器，100% 在本地瀏覽器完成轉檔</p>
+    
+    <div id="drop-zone">
+        <p>拖曳多張圖片到此處，或點擊選擇檔案</p>
+        <input type="file" id="file-input" multiple accept="image/jpeg, image/png" style="display: none;">
+    </div>
+
+    <button id="convert-btn" disabled>一鍵轉換並下載 PDF</button>
+    <div id="status">尚未選擇檔案</div>
+</div>
+
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const convertBtn = document.getElementById('convert-btn');
+    const statusDiv = document.getElementById('status');
+    
+    let selectedFiles = [];
+
+    // 點擊觸發檔案選擇
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    // 處理檔案選擇
+    fileInput.addEventListener('change', handleFiles);
+    
+    // 處理拖曳事件
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.backgroundColor = '#384d39';
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.style.backgroundColor = 'transparent';
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.backgroundColor = 'transparent';
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            handleFiles();
+        }
+    });
+
+    function handleFiles() {
+        selectedFiles = Array.from(fileInput.files);
+        if (selectedFiles.length > 0) {
+            statusDiv.innerText = `已選擇 ${selectedFiles.length} 張圖片`;
+            convertBtn.disabled = false;
+        } else {
+            statusDiv.innerText = "尚未選擇檔案";
+            convertBtn.disabled = true;
+        }
+    }
+
+    // 核心運算：100% 前端打包 PDF
+    convertBtn.addEventListener('click', async () => {
+        try {
+            convertBtn.disabled = true;
+            statusDiv.innerText = "⚡ 正在本地處理中，請稍候...";
+
+            // 1. 建立一個全新的 PDF 文件
+            const pdfDoc = await PDFLib.PDFDocument.create();
+
+            // 2. 利用非同步迴圈讀取並嵌入每一張圖片（非阻塞，確保網頁不會卡死）
+            for (const file of selectedFiles) {
+                const arrayBuffer = await file.arrayBuffer();
+                let image;
+                
+                // 根據圖片格式選擇正確的編碼嵌入器
+                if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+                    image = await pdfDoc.embedJpg(arrayBuffer);
+                } else if (file.type === 'image/png') {
+                    image = await pdfDoc.embedPng(arrayBuffer);
+                } else {
+                    continue; // 忽略不支援的格式
+                }
+
+                // 獲取圖片原始寬高
+                const { width, height } = image.scale(1);
+
+                // 在 PDF 中新增一頁，大小與圖片完全相同
+                const page = pdfDoc.addPage([width, height]);
+
+                // 將圖片畫在該頁面上（座標從左下角 0,0 開始）
+                page.drawImage(image, {
+                    x: 0,
+                    y: 0,
+                    width: width,
+                    height: height,
+                });
+            }
+
+            // 3. 將記憶體中的 PDF 資料序列化（Serialize）
+            const pdfBytes = await pdfDoc.save();
+
+            // 4. 關鍵亮點：利用 Blob 建立一個本地的虛擬下載連結
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const blobUrl = URL.createObjectURL(blob);
+
+            // 5. 模擬點擊下載
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.href = blobUrl;
+            downloadAnchor.download = `converted_${Date.now()}.pdf`;
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            
+            // 6. 清理記憶體，防止大檔案記憶體溢出
+            document.body.removeChild(downloadAnchor);
+            URL.revokeObjectURL(blobUrl);
+
+            statusDiv.innerText = "✅ 轉檔完成！已開始下載。";
+            convertBtn.disabled = false;
+        } catch (error) {
+            console.error(error);
+            statusDiv.innerText = "❌ 轉檔失敗，請確認檔案格式是否正確。";
+            convertBtn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>

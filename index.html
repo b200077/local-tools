@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>極速本地工具箱 - 100% 本地隱私安全</title>
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            color: #4caf50;
+        }
+        .header p {
+            color: #aaa;
+            margin-top: 10px;
+            font-size: 1rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 800px;
+            width: 100%;
+        }
+        .card {
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s, border-color 0.2s;
+            cursor: pointer;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #4caf50;
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #4caf50;
+        }
+        /* Excel 卡片可以用藍色系做區隔 */
+        .card.excel-card:hover {
+            border-color: #2196F3;
+        }
+        .card.excel-card h2 {
+            color: #2196F3;
+        }
+        .card p {
+            color: #ccc;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .badge {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        .excel-card .badge {
+            background-color: rgba(33, 150, 243, 0.1);
+            color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🔒 極速本地隱私工具箱</h1>
+    <p>所有工具皆 100% 於您本機瀏覽器完成運算，檔案絕對不上傳伺服器。</p>
+</div>
+
+<div class="grid">
+    <!-- 圖片轉 PDF 卡片 -->
+    <a href="image-pdf.html" class="card">
+        <span class="badge">IMAGE ➔ PDF</span>
+        <h2>圖片轉 PDF 工具</h2>
+        <p>將多張 JPG、PNG 圖片在本地打包成單一 PDF。適合處理證件、機密合約掃描檔。</p>
+    </a>
+
+    <!-- Excel 轉 CSV/JSON 卡片 -->
+    <a href="excel-tool.html" class="card excel-card">
+        <span class="badge">EXCEL ➔ CSV / JSON</span>
+        <h2>Excel 轉換器</h2>
+        <p>快速將 XLSX、XLS 檔案轉換成 CSV 或 JSON。100% 離線安全，商業機密不外洩。</p>
+    </a>
+</div>
+
+</body>
+</html>
