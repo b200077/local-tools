@@ -36,12 +36,14 @@
         <a id="downloadLink" style="display:none; margin-top:10px; display:inline-block; color:#007bff; font-weight:bold;" download="完美剪輯版.mp4">📥 下載剪輯版影片</a>
     </div>
 
-    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
-    <script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/index.min.js"></script>
+    <script src="coi-serviceworker.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
 
     <script>
-        const { createFFmpeg, fetchFile } = FFmpeg;
-        const ffmpeg = createFFmpeg({ log: true });
+        const { FFmpeg } = FFmpegWASM;
+        const { fetchFile, toBlobURL } = FFmpegUtil;
+        const ffmpeg = new FFmpeg();
 
         const statusText = document.getElementById('status');
         const uploader = document.getElementById('uploader');
@@ -51,10 +53,15 @@
         const outputVideo = document.getElementById('outputVideo');
         const downloadLink = document.getElementById('downloadLink');
 
-        // 1. 初始化並載入 FFmpeg WebAssembly
+        ffmpeg.on('log', ({ message }) => console.log(message));
+
         async function loadFFmpeg() {
             try {
-                await ffmpeg.load();
+                const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+                await ffmpeg.load({
+                    coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+                    wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+                });
                 statusText.innerText = "FFmpeg 載入成功！請選擇影片並輸入時間。";
                 uploader.disabled = false;
             } catch (error) {
@@ -63,7 +70,6 @@
             }
         }
 
-        // 2. 處理檔案轉換
         convertBtn.addEventListener('click', async () => {
             const file = uploader.files[0];
             if (!file) return;
@@ -74,33 +80,31 @@
             statusText.innerText = "正在極速剪輯中...";
             convertBtn.disabled = true;
 
-            // 將影片寫入虛擬檔案系統
-            ffmpeg.FS('writeFile', 'input.mp4', await fetchFile(file));
+            try {
+                await ffmpeg.writeFile('input.mp4', await fetchFile(file));
+                await ffmpeg.exec(['-ss', ss, '-to', to, '-i', 'input.mp4', '-c', 'copy', 'output.mp4']);
+                const data = await ffmpeg.readFile('output.mp4');
 
-            // 執行你剛才提供的無損剪輯指令
-            // ffmpeg -ss 00:01:20 -to 00:10:45 -i "input.mp4" -c copy "output.mp4"
-            await ffmpeg.run('-ss', ss, '-to', to, '-i', 'input.mp4', '-c', 'copy', 'output.mp4');
+                const videoBlob = new Blob([data.buffer], { type: 'video/mp4' });
+                const videoUrl = URL.createObjectURL(videoBlob);
 
-            // 從虛擬檔案系統讀出
-            const data = ffmpeg.FS('readFile', 'output.mp4');
+                outputVideo.src = videoUrl;
+                outputVideo.style.display = 'block';
 
-            // 轉成瀏覽器 Blob URL
-            const videoBlob = new Blob([data.buffer], { type: 'video/mp4' });
-            const videoUrl = URL.createObjectURL(videoBlob);
+                downloadLink.href = videoUrl;
+                downloadLink.style.display = 'block';
 
-            // 渲染至前端
-            outputVideo.src = videoUrl;
-            outputVideo.style.display = 'block';
-            
-            downloadLink.href = videoUrl;
-            downloadLink.style.display = 'block';
-            
-            statusText.innerText = "剪輯完成！";
-            convertBtn.disabled = false;
+                statusText.innerText = "剪輯完成！";
+            } catch (error) {
+                statusText.innerText = "剪輯失敗，請檢查時間格式或檔案。";
+                console.error(error);
+            } finally {
+                convertBtn.disabled = false;
+            }
         });
 
         uploader.addEventListener('change', () => {
-            if(uploader.files.length > 0) convertBtn.disabled = false;
+            if (uploader.files.length > 0) convertBtn.disabled = false;
         });
 
         loadFFmpeg();
