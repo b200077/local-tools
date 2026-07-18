@@ -42,7 +42,7 @@
 
     <script>
         const { FFmpeg } = FFmpegWASM;
-        const { fetchFile } = FFmpegUtil;
+        const { fetchFile, toBlobURL } = FFmpegUtil;
         const ffmpeg = new FFmpeg();
 
         const statusText = document.getElementById('status');
@@ -55,12 +55,15 @@
 
         ffmpeg.on('log', ({ message }) => console.log(message));
 
-        // 1. 初始化並載入 FFmpeg WebAssembly（全部走同網域，不需要 toBlobURL）
+        // 1. 初始化並載入 FFmpeg WebAssembly
+        // 用 toBlobURL 把同網域檔案讀成 Blob URL，避免 Worker 內部用自己的路徑當基準
+        // 解析 coreURL/wasmURL 導致相對路徑錯亂（找到 vendor/ffmpeg/vendor/core/... 這種錯誤路徑）
         async function loadFFmpeg() {
             try {
+                const baseURL = 'vendor/core';
                 await ffmpeg.load({
-                    coreURL: 'vendor/core/ffmpeg-core.js',
-                    wasmURL: 'vendor/core/ffmpeg-core.wasm',
+                    coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+                    wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
                 });
                 statusText.innerText = "FFmpeg 載入成功！請選擇影片並輸入時間。";
                 uploader.disabled = false;
