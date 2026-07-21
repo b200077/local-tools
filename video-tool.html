@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎬 本地影音處理工具 - 極速本地隱私工具箱</title>
+    <title data-i18n="video_page_title">🎬 本地影音處理工具 - 極速本地隱私工具箱</title>
     <script src="coi-serviceworker.js"></script>
     <style>
         body { font-family: sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; line-height: 1.6; background-color: #1a1a1a; color: #e0e0e0; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .nav-link { color: #3993ff; text-decoration: none; font-weight: bold; }
+        .nav-link:hover { text-decoration: underline; }
+        .lang-btn { background-color: #333; color: #fff; border: 1px solid #555; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .lang-btn:hover { background-color: #444; }
         .container { border: 1px solid #333; padding: 20px; border-radius: 8px; background-color: #242424; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .status { color: #aaa; font-style: italic; margin: 10px 0; }
         .form-group { margin: 15px 0; }
@@ -19,40 +24,47 @@
     </style>
 </head>
 <body>
+    <header>
+        <a href="index.html" class="nav-link" data-i18n="nav_home">← 首頁</a>
+        <button id="lang-toggle" class="lang-btn" onclick="toggleLanguage()">English</button>
+    </header>
+
     <div class="container">
-        <h2>🎬 本地影音處理工具 (極速萬能轉檔)</h2>
-        <p>狀態：<span id="status" class="status">正在載入 FFmpeg 核心...</span></p>
+        <h2 data-i18n="video_heading">🎬 本地影音處理工具 (極速萬能轉檔)</h2>
+        <p><span data-i18n="video_status_prefix">狀態：</span><span id="status" class="status" data-i18n="video_status_loading">正在載入 FFmpeg 核心...</span></p>
 
         <div class="form-group">
-            <label>選擇檔案：</label>
+            <label data-i18n="video_label_file">選擇檔案：</label>
             <input type="file" id="uploader" accept="video/*,audio/*" disabled>
         </div>
 
         <div class="form-group">
-            <label>選擇功能：</label>
+            <label data-i18n="video_label_feature">選擇功能：</label>
             <select id="toolMode">
-                <option value="cut">🎬 影片無損秒切 (不傷畫質)</option>
-                <option value="mp3">🎵 提取音訊 (轉為 MP3)</option>
-                <option value="convert">💻 影片格式轉換 (相容性優化 MP4)</option>
+                <option value="cut" data-i18n="video_opt_cut">🎬 影片無損秒切 (不傷畫質)</option>
+                <option value="mp3" data-i18n="video_opt_mp3">🎵 提取音訊 (轉為 MP3)</option>
+                <option value="convert" data-i18n="video_opt_convert">💻 影片格式轉換 (相容性優化 MP4)</option>
             </select>
         </div>
 
         <div id="timeInputSection" class="form-group time-input">
-            <label>開始時間：<input type="text" id="startTime" value="00:00:00" placeholder="hh:mm:ss"></label>
-            <label>結束時間：<input type="text" id="endTime" value="00:01:00" placeholder="hh:mm:ss"></label>
+            <label><span data-i18n="video_label_start">開始時間：</span><input type="text" id="startTime" value="00:00:00" placeholder="hh:mm:ss"></label>
+            <label><span data-i18n="video_label_end">結束時間：</span><input type="text" id="endTime" value="00:01:00" placeholder="hh:mm:ss"></label>
         </div>
 
-        <button id="convertBtn" disabled>開始處理</button>
+        <button id="convertBtn" disabled data-i18n="video_btn_start">開始處理</button>
         <br><br>
 
         <video id="outputVideo" controls width="100%" style="display:none; margin-top: 10px;"></video>
         <audio id="outputAudio" controls style="display:none; width:100%; margin-top: 10px;"></audio>
         <br>
-        <a id="downloadLink" style="display:none; margin-top:10px; display:inline-block; color:#3993ff; font-weight:bold; text-decoration: none;" download="處理完成檔案">📥 下載處理完成檔案</a>
+        <a id="downloadLink" style="display:none; margin-top:10px; display:inline-block; color:#3993ff; font-weight:bold; text-decoration: none;" download="處理完成檔案" data-i18n="video_btn_download">📥 下載處理完成檔案</a>
     </div>
 
     <script src="vendor/ffmpeg/ffmpeg.js"></script>
     <script src="vendor/util/ffmpeg-util.js"></script>
+
+    <script src="js/i18n.js"></script>
 
     <script>
         const { FFmpeg } = FFmpegWASM;
@@ -70,20 +82,27 @@
         const outputAudio = document.getElementById('outputAudio');
         const downloadLink = document.getElementById('downloadLink');
 
+        // 取得當前語言字典輔助函式
+        function getDict() {
+            const lang = localStorage.getItem('app_lang') || (navigator.language.startsWith('en') ? 'en' : 'zh');
+            return (typeof translations !== 'undefined' && translations[lang]) ? translations[lang] : {};
+        }
+
         ffmpeg.on('log', ({ message }) => console.log(message));
 
         // 1. 初始化並載入 FFmpeg WebAssembly
         async function loadFFmpeg() {
+            const dict = getDict();
             try {
                 const baseURL = 'vendor/core';
                 await ffmpeg.load({
                     coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
                     wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
                 });
-                statusText.innerText = "FFmpeg 載入成功！請選擇檔案並點擊開始。";
+                statusText.innerText = dict.video_status_ready || "FFmpeg 載入成功！請選擇檔案並點擊開始。";
                 uploader.disabled = false;
             } catch (error) {
-                statusText.innerText = "載入失敗，瀏覽器可能不支援 SharedArrayBuffer。";
+                statusText.innerText = dict.video_status_unsupported || "載入失敗，瀏覽器可能不支援 SharedArrayBuffer。";
                 console.error(error);
             }
         }
@@ -102,7 +121,8 @@
             const file = uploader.files[0];
             if (!file) return;
 
-            statusText.innerText = "正在處理中，請稍候...";
+            const dict = getDict();
+            statusText.innerText = dict.video_status_processing || "正在處理中，請稍候...";
             convertBtn.disabled = true;
             
             // 隱藏舊的播放器與下載連結
@@ -116,7 +136,7 @@
             let mimeType = 'video/mp4';
 
             try {
-                // 將檔案寫入 FFmpeg 虛擬虛擬檔案系統
+                // 將檔案寫入 FFmpeg 虛擬檔案系統
                 await ffmpeg.writeFile(inputName, await fetchFile(file));
 
                 // 根據選擇的功能，執行不同的 FFmpeg 指令
@@ -124,20 +144,17 @@
                     const ss = startTimeInput.value.trim();
                     const to = endTimeInput.value.trim();
                     outputName = 'cut_output.mp4';
-                    // -c copy 代表無損秒切（速度極快）
                     await ffmpeg.exec(['-ss', ss, '-to', to, '-i', inputName, '-c', 'copy', outputName]);
                     mimeType = 'video/mp4';
 
                 } else if (mode === 'mp3') {
                     outputName = 'audio_output.mp3';
                     mimeType = 'audio/mp3';
-                    // 提取音訊，轉碼為高音質 MP3 (-q:a 2 接近 192kbps VBR)
                     await ffmpeg.exec(['-i', inputName, '-vn', '-q:a', '2', outputName]);
 
                 } else if (mode === 'convert') {
                     outputName = 'converted_output.mp4';
                     mimeType = 'video/mp4';
-                    // 萬用格式轉碼：將各類影片強制編碼為 H.264 影片 + AAC 音訊，確保瀏覽器絕對可播
                     await ffmpeg.exec(['-i', inputName, '-vcodec', 'libx264', '-acodec', 'aac', '-pix_fmt', 'yuv420p', outputName]);
                 }
 
@@ -159,14 +176,14 @@
 
                 downloadLink.href = resUrl;
                 downloadLink.style.display = 'block';
-                statusText.innerText = "處理完成！";
+                statusText.innerText = dict.video_status_done || "處理完成！";
 
                 // 清理虛擬檔案系統釋放記憶體
                 await ffmpeg.deleteFile(inputName);
                 await ffmpeg.deleteFile(outputName);
 
             } catch (error) {
-                statusText.innerText = "處理失敗，請檢查檔案格式或時間設定。";
+                statusText.innerText = dict.video_status_failed || "處理失敗，請檢查檔案格式或時間設定。";
                 console.error(error);
             } finally {
                 convertBtn.disabled = false;

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📄 本地 PDF/PPTX/Google簡報 轉文字工具 - 極速本地隱私工具箱</title>
+    <title data-i18n="pdf_ppt_page_title">📄 本地 PDF/PPTX/Google簡報 轉文字工具 - 極速本地隱私工具箱</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         body { 
@@ -15,6 +15,17 @@
             background-color: #1a1a1a; 
             color: #e0e0e0; 
         }
+        header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+        }
+        .nav-link { color: #3993ff; text-decoration: none; font-weight: bold; }
+        .nav-link:hover { text-decoration: underline; }
+        .lang-btn { background-color: #333; color: #fff; border: 1px solid #555; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .lang-btn:hover { background-color: #444; }
+
         .container { 
             border: 1px solid #333; 
             padding: 20px; 
@@ -139,34 +150,41 @@
     </style>
 </head>
 <body>
+    <header>
+        <a href="index.html" class="nav-link" data-i18n="nav_home">← 首頁</a>
+        <button id="lang-toggle" class="lang-btn" onclick="toggleLanguage()">English</button>
+    </header>
+
     <div class="container">
-        <h2>📄 本地 PDF/PPTX/Google簡報 轉文字工具</h2>
-        <div class="privacy-tip">
+        <h2 data-i18n="pdf_ppt_heading">📄 本地 PDF/PPTX/Google簡報 轉文字工具</h2>
+        <div class="privacy-tip" data-i18n="pdf_ppt_privacy_tip">
             🛡️ <b>安全提示：</b>本工具為 100% 純前端本地運算。強烈建議在<b>「瀏覽器無痕模式」</b>下使用，以防止瀏覽器外掛讀取記憶體或產生殘留。
         </div>
         
-        <p>狀態：<span id="status" class="status">等待處理檔案...</span></p>
+        <p><span data-i18n="pdf_ppt_status_prefix">狀態：</span><span id="status" class="status" data-i18n="pdf_ppt_status_waiting">等待處理檔案...</span></p>
 
         <div class="form-group">
-            <label for="uploader">【方法一】選取本地 PDF 或 PPTX 檔案：</label>
+            <label for="uploader" data-i18n="pdf_ppt_label_method1">【方法一】選取本地 PDF 或 PPTX 檔案：</label>
             <input type="file" id="uploader" accept=".pdf,.pptx">
         </div>
 
         <div class="form-group">
-            <label for="googleUrl">【方法二】輸入 Google 簡報共用網址：</label>
-            <input type="text" id="googleUrl" placeholder="https://docs.google.com/presentation/d/.../edit...">
+            <label for="googleUrl" data-i18n="pdf_ppt_label_method2">【方法二】輸入 Google 簡報共用網址：</label>
+            <input type="text" id="googleUrl" data-i18n-placeholder="pdf_ppt_ph_google_url" placeholder="https://docs.google.com/presentation/d/.../edit...">
         </div>
 
         <div class="btn-group">
-            <button id="extractBtn" class="btn-primary" disabled>開始提取純文字</button>
-            <button id="googleBtn" class="btn-google">從 Google 簡報匯入並提取</button>
+            <button id="extractBtn" class="btn-primary" disabled data-i18n="pdf_ppt_btn_extract">開始提取純文字</button>
+            <button id="googleBtn" class="btn-google" data-i18n="pdf_ppt_btn_google">從 Google 簡報匯入並提取</button>
         </div>
 
         <div class="result-section">
-            <label style="font-weight: bold; display: block; margin-bottom: 8px; color: #b0b0b0;">提取結果：</label>
-            <textarea id="outputText" placeholder="提取出來的文字將會顯示在這裡..." readonly></textarea>
+            <label style="font-weight: bold; display: block; margin-bottom: 8px; color: #b0b0b0;" data-i18n="pdf_ppt_label_result">提取結果：</label>
+            <textarea id="outputText" data-i18n-placeholder="pdf_ppt_ph_result" placeholder="提取出來的文字將會顯示在這裡..." readonly></textarea>
         </div>
     </div>
+
+    <script src="js/i18n.js"></script>
 
     <script>
         // 請在此處填入您在 Google Cloud Console 申請的 Client ID
@@ -183,25 +201,33 @@
         let accessToken = null;
         let currentMode = 'local'; // 'local' 或 'google'
 
+        // 取得當前語言字典輔助函式
+        function getDict() {
+            const lang = localStorage.getItem('app_lang') || (navigator.language.startsWith('en') ? 'en' : 'zh');
+            return (typeof translations !== 'undefined' && translations[lang]) ? translations[lang] : {};
+        }
+
         // 監聽本地檔案選取狀態
         uploader.addEventListener('change', () => {
+            const dict = getDict();
             if (uploader.files.length > 0) {
                 extractBtn.disabled = false;
                 googleUrlInput.value = ''; // 清空另一個輸入框避免混淆
-                statusText.innerText = `已選取本地檔案：${uploader.files[0].name}`;
+                statusText.innerText = `${dict.pdf_ppt_status_selected || "已選取本地檔案："}${uploader.files[0].name}`;
                 currentMode = 'local';
             } else {
                 extractBtn.disabled = true;
-                statusText.innerText = "等待處理檔案...";
+                statusText.innerText = dict.pdf_ppt_status_waiting || "等待處理檔案...";
             }
         });
 
         // 監聽網址輸入狀態（若有輸入，清空本地上傳）
         googleUrlInput.addEventListener('input', () => {
+            const dict = getDict();
             if (googleUrlInput.value.trim() !== '') {
                 uploader.value = ''; 
                 extractBtn.disabled = true; // 隱藏本地按鈕的觸發
-                statusText.innerText = "已偵測到 Google 簡報網址，請點擊藍色匯入按鈕。";
+                statusText.innerText = dict.pdf_ppt_status_detected_url || "已偵測到 Google 簡報網址，請點擊藍色匯入按鈕。";
                 currentMode = 'google';
             }
         });
@@ -235,10 +261,6 @@
 
         // 核心文字解析處理調度器
         async function runCoreParser(fileData, isArrayBuffer = false) {
-            // ─── 這裡串接你原本的解析邏輯 ───
-            // 範例：
-            // const text = isArrayBuffer ? await yourBufferParser(fileData) : await yourFileParser(fileData);
-            
             return new Promise((resolve) => {
                 setTimeout(() => {
                     resolve("【本地解析核心成功】\n已成功將二進位資料導進純前端沙盒處理器。\n格式支援：PDF / PPTX 串接就緒。");
@@ -251,16 +273,17 @@
             const file = uploader.files[0];
             if (!file) return;
 
-            statusText.innerText = "正在本地極速解析中...";
+            const dict = getDict();
+            statusText.innerText = dict.pdf_ppt_status_parsing || "正在本地極速解析中...";
             setButtonsDisabled(true);
             outputText.value = "";
 
             try {
                 let parsedText = await runCoreParser(file, false);
-                statusText.innerText = "本地檔案文字提取成功！";
+                statusText.innerText = dict.pdf_ppt_status_success || "本地檔案文字提取成功！";
                 outputText.value = parsedText;
             } catch (error) {
-                statusText.innerText = "解析失敗，請確認檔案是否損壞。";
+                statusText.innerText = dict.pdf_ppt_status_error || "解析失敗，請確認檔案是否損壞。";
                 console.error(error);
             } finally {
                 setButtonsDisabled(false);
@@ -269,17 +292,18 @@
 
         // 【方法二處理】Google 簡報按鈕點擊
         googleBtn.addEventListener('click', () => {
+            const dict = getDict();
             const url = googleUrlInput.value.trim();
             if (!url) {
-                statusText.innerText = "請先輸入 Google 簡報網址！";
+                statusText.innerText = dict.pdf_ppt_status_no_url || "請先輸入 Google 簡報網址！";
                 return;
             }
             if (!extractFileId(url)) {
-                statusText.innerText = "無法解析該網址，請確認是否為標準的 Google 簡報連結。";
+                statusText.innerText = dict.pdf_ppt_status_invalid_url || "無法解析該網址，請確認是否為標準的 Google 簡報連結。";
                 return;
             }
 
-            statusText.innerText = "正在要求 Google 帳號授權...";
+            statusText.innerText = dict.pdf_ppt_status_requesting_auth || "正在要求 Google 帳號授權...";
             
             // 請求 Google Token，若已有 Token 則靜態刷新
             if (accessToken === null) {
@@ -291,8 +315,9 @@
 
         // 執行從 Google 下載並解析簡報
         async function processGooglePresentation() {
+            const dict = getDict();
             const fileId = extractFileId(googleUrlInput.value.trim());
-            statusText.innerText = "已取得授權，正在從雲端安全導流二進位檔...";
+            statusText.innerText = dict.pdf_ppt_status_downloading_cloud || "已取得授權，正在從雲端安全導流二進位檔...";
             setButtonsDisabled(true);
             outputText.value = "";
 
@@ -308,12 +333,12 @@
                 if (!response.ok) throw new Error('雲端匯出失敗，請確認該簡報的權限是否允許唯讀。');
 
                 arrayBuffer = await response.arrayBuffer();
-                statusText.innerText = "已直連接收檔案，正在本地解析文字...";
+                statusText.innerText = dict.pdf_ppt_status_parsing_cloud || "已直連接收檔案，正在本地解析文字...";
 
                 // 送進本地解析引擎
                 let parsedText = await runCoreParser(arrayBuffer, true);
                 
-                statusText.innerText = "Google 簡報文字提取成功！";
+                statusText.innerText = dict.pdf_ppt_status_google_success || "Google 簡報文字提取成功！";
                 outputText.value = parsedText;
 
             } catch (error) {
@@ -321,7 +346,6 @@
                 console.error(error);
             } finally {
                 // 🛡️ 資安優化：垃圾回收（Garbage Collection）防禦
-                // 立即將儲存敏感檔案資料的記憶體變數指向 null，防止留存於記憶體被側錄
                 arrayBuffer = null; 
                 setButtonsDisabled(false);
             }
