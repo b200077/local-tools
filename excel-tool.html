@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>安全 Excel 轉 CSV/JSON - 100% 本地隱私安全</title>
-    <!-- 引入 SheetJS 核心庫 -->
+    <title data-i18n="excel_page_title">安全 Excel 轉 CSV/JSON - 100% 本地隱私安全</title>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         body {
@@ -18,7 +17,39 @@
             min-height: 100vh;
             margin: 0;
             padding: 20px;
+            box-sizing: border-box;
         }
+
+        /* 頂部導覽列與切換按鈕樣式 */
+        header {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .nav-link {
+            color: #2196F3;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+        .lang-btn {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .lang-btn:hover {
+            background-color: #444;
+        }
+
         .container {
             text-align: center;
             background-color: #2d2d2d;
@@ -70,27 +101,33 @@
 </head>
 <body>
 
+<header>
+    <a href="index.html" class="nav-link" data-i18n="nav_home">← 首頁</a>
+    <button id="lang-toggle" class="lang-btn" onclick="toggleLanguage()">English</button>
+</header>
+
 <div class="container">
-    <h2>Excel 轉 CSV / JSON 工具</h2>
-    <p style="font-size: 14px; color: #888;">🔒 商業機密、客戶個資不外洩！100% 在本地瀏覽器完成轉檔，支援斷網操作</p>
+    <h2 data-i18n="tool_excel_title">Excel 轉 CSV / JSON 工具</h2>
+    <p style="font-size: 14px; color: #888;" data-i18n="excel_subtitle">🔒 商業機密、客戶個資不外洩！100% 在本地瀏覽器完成轉檔，支援斷網操作</p>
     
     <div id="drop-zone">
-        <p>拖曳 Excel 檔案 (.xlsx, .xls) 到此處，或點擊選擇檔案</p>
+        <p data-i18n="excel_dropzone">拖曳 Excel 檔案 (.xlsx, .xls) 到此處，或點擊選擇檔案</p>
         <input type="file" id="file-input" accept=".xlsx, .xls" style="display: none;">
     </div>
 
-    <!-- 檔案解析後展現的控制台 -->
     <div id="control-panel" class="control-panel">
-        <p>請選擇要轉換的工作表 (Sheet)：</p>
+        <p data-i18n="excel_select_sheet">請選擇要轉換的工作表 (Sheet)：</p>
         <select id="sheet-selector"></select>
         <div style="margin-top: 15px;">
-            <button id="to-csv-btn" class="btn-csv">轉為 CSV 下載</button>
-            <button id="to-json-btn" class="btn-json">轉為 JSON 下載</button>
+            <button id="to-csv-btn" class="btn-csv" data-i18n="excel_btn_csv">轉為 CSV 下載</button>
+            <button id="to-json-btn" class="btn-json" data-i18n="excel_btn_json">轉為 JSON 下載</button>
         </div>
     </div>
 
-    <div id="status">尚未選擇檔案</div>
+    <div id="status" data-i18n="excel_status_default">尚未選擇檔案</div>
 </div>
+
+<script src="js/i18n.js"></script>
 
 <script>
     const dropZone = document.getElementById('drop-zone');
@@ -103,6 +140,12 @@
     
     let currentWorkbook = null;
     let currentFileName = "";
+
+    // 取得當前語言字典輔助函式
+    function getDict() {
+        const lang = localStorage.getItem('app_lang') || (navigator.language.startsWith('en') ? 'en' : 'zh');
+        return (typeof translations !== 'undefined' && translations[lang]) ? translations[lang] : {};
+    }
 
     // 點擊觸發檔案選擇
     dropZone.addEventListener('click', () => fileInput.click());
@@ -125,8 +168,9 @@
         const file = fileInput.files[0];
         if (!file) return;
 
+        const dict = getDict();
         currentFileName = file.name.replace(/\.[^/.]+$/, ""); // 去除副檔名留作檔名
-        statusDiv.innerText = "⚡ 正在本地解析 Excel 中...";
+        statusDiv.innerText = dict.excel_status_parsing || "⚡ 正在本地解析 Excel 中...";
 
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -144,11 +188,11 @@
                     sheetSelector.appendChild(option);
                 });
 
-                statusDiv.innerText = `✅ 成功讀取檔案：${file.name}`;
+                statusDiv.innerText = `${dict.excel_status_success || "✅ 成功讀取檔案："}${file.name}`;
                 controlPanel.style.display = "block"; // 顯示轉換按鈕
             } catch (err) {
                 console.error(err);
-                statusDiv.innerText = "❌ 檔案解析失敗，請確認是否為正確的 Excel 格式。";
+                statusDiv.innerText = dict.excel_status_error || "❌ 檔案解析失敗，請確認是否為正確的 Excel 格式。";
                 controlPanel.style.display = "none";
             }
         };
@@ -166,7 +210,7 @@
         // SheetJS 內建公式：直接將工作表轉成 CSV 字串
         const csvContent = XLSX.utils.sheet_to_csv(worksheet);
         
-        // 加上 UTF-8 BOM (\uFEFF) 確保 Excel 開啟 CSV 時不會變亂碼 (這點對台灣商務用戶超重要！)
+        // 加上 UTF-8 BOM (\uFEFF) 確保 Excel 開啟 CSV 時不會變亂碼 (對台灣商務用戶超重要！)
         triggerDownload(new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: "text/csv;charset=utf-8;" }), `${currentFileName}_${selectedSheet}.csv`);
     });
 
@@ -185,6 +229,7 @@
 
     // 通用本地下載函式
     function triggerDownload(blob, filename) {
+        const dict = getDict();
         const blobUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = blobUrl;
@@ -193,7 +238,7 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(blobUrl);
-        statusDiv.innerText = `🎉 已成功匯出 ${filename}！`;
+        statusDiv.innerText = `${dict.excel_status_exported || "🎉 已成功匯出 "}${filename}！`;
     }
 </script>
 
