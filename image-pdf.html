@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>極速圖片轉 PDF - 100% 本地隱私安全</title>
-    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7546597219509158"
-     crossorigin="anonymous"></script>
+    <title data-i18n="image_pdf_page_title">🖼 本地圖片轉 PDF 工具 - 極速本地隱私工具箱</title>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <style>
         body {
             background-color: #1e1e1e;
@@ -18,45 +16,99 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
+
+        /* 頂部導覽列與切換按鈕樣式 */
+        header {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .nav-link {
+            color: #2196F3;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+        .lang-btn {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .lang-btn:hover {
+            background-color: #444;
+        }
+
         .container {
             text-align: center;
             background-color: #2d2d2d;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            max-width: 500px;
+            max-width: 700px;
             width: 90%;
         }
         #drop-zone {
-            border: 2px dashed #4caf50;
+            border: 2px dashed #4CAF50;
             border-radius: 8px;
-            padding: 40px 20px;
+            padding: 30px 20px;
             cursor: pointer;
             transition: background 0.3s;
             margin-bottom: 20px;
         }
         #drop-zone:hover {
-            background-color: #384d39;
+            background-color: #1b3a24;
+        }
+        /* 圖片預覽 Grid 區域 */
+        #preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #222;
+            border-radius: 6px;
+        }
+        .img-card {
+            position: relative;
+            width: 100%;
+            padding-top: 100%; /* 1:1 正方形容器 */
+            border-radius: 4px;
+            overflow: hidden;
+            background-color: #333;
+        }
+        .img-card img {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
         }
         button {
-            background-color: #4caf50;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 16px;
+            padding: 10px 18px;
+            font-size: 14px;
             border-radius: 6px;
-            cursor: pointer;
+            border: none;
             font-weight: bold;
-            transition: background 0.2s;
+            margin: 5px;
+            cursor: pointer;
         }
-        button:hover {
-            background-color: #45a049;
-        }
-        button:disabled {
-            background-color: #555;
-            cursor: not-allowed;
-        }
+        .btn-convert { background-color: #4CAF50; color: white; }
+        .btn-convert:hover { background-color: #45a049; }
+        .btn-clear { background-color: #f44336; color: white; }
+        .btn-clear:hover { background-color: #da190b; }
         #status {
             margin-top: 15px;
             color: #aaa;
@@ -65,127 +117,188 @@
 </head>
 <body>
 
+<header>
+    <a href="index.html" class="nav-link" data-i18n="nav_home">← 首頁</a>
+    <button id="lang-toggle" class="lang-btn" onclick="toggleLanguage()">English</button>
+</header>
+
 <div class="container">
-    <h2>圖片轉 PDF 工具</h2>
-    <p style="font-size: 14px; color: #888;">🔒 您的檔案絕對不會上傳到伺服器，100% 在本地瀏覽器完成轉檔</p>
+    <h2 data-i18n="img_pdf_heading">🖼 本地圖片轉 PDF 工具</h2>
+    <p style="font-size: 14px; color: #888;" data-i18n="img_pdf_subtitle">🔒 100% 在本地瀏覽器將圖片打包成 PDF，隱私安全免上傳</p>
     
     <div id="drop-zone">
-        <p>拖曳多張圖片到此處，或點擊選擇檔案</p>
-        <input type="file" id="file-input" multiple accept="image/jpeg, image/png" style="display: none;">
+        <p data-i18n="img_pdf_dropzone">拖曳圖片 (.jpg, .png, .webp) 到此處，或點擊選擇檔案</p>
+        <input type="file" id="file-input" accept="image/jpeg, image/png, image/webp" multiple style="display: none;">
     </div>
 
-    <button id="convert-btn" disabled>一鍵轉換並下載 PDF</button>
-    <div id="status">尚未選擇檔案</div>
+    <div id="preview-grid" style="display: none;"></div>
+
+    <div id="control-panel" style="display: none;">
+        <button id="clear-btn" class="btn-clear" data-i18n="img_pdf_btn_clear">🗑 清空所有圖片</button>
+        <button id="convert-btn" class="btn-convert" data-i18n="img_pdf_btn_convert">🚀 開始轉換並下載 PDF</button>
+    </div>
+
+    <div id="status" data-i18n="img_pdf_status_default">尚未選取圖片</div>
 </div>
+
+<script src="js/i18n.js"></script>
 
 <script>
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
+    const previewGrid = document.getElementById('preview-grid');
+    const controlPanel = document.getElementById('control-panel');
+    const clearBtn = document.getElementById('clear-btn');
     const convertBtn = document.getElementById('convert-btn');
     const statusDiv = document.getElementById('status');
-    
-    let selectedFiles = [];
 
-    // 點擊觸發檔案選擇
+    let imageFiles = []; // 儲存使用者上傳的圖片檔案陣列
+
+    // 取得當前語言字典輔助函式
+    function getDict() {
+        const lang = localStorage.getItem('app_lang') || (navigator.language.startsWith('en') ? 'en' : 'zh');
+        return (typeof translations !== 'undefined' && translations[lang]) ? translations[lang] : {};
+    }
+
+    // 觸發選擇檔案
     dropZone.addEventListener('click', () => fileInput.click());
-
-    // 處理檔案選擇
     fileInput.addEventListener('change', handleFiles);
-    
-    // 處理拖曳事件
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.style.backgroundColor = '#384d39';
-    });
 
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.style.backgroundColor = 'transparent';
-    });
-
+    // 拖曳處理
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.backgroundColor = '#1b3a24'; });
+    dropZone.addEventListener('dragleave', () => { dropZone.style.backgroundColor = 'transparent'; });
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropZone.style.backgroundColor = 'transparent';
         if (e.dataTransfer.files.length > 0) {
-            fileInput.files = e.dataTransfer.files;
-            handleFiles();
+            handleFiles({ target: { files: e.dataTransfer.files } });
         }
     });
 
-    function handleFiles() {
-        selectedFiles = Array.from(fileInput.files);
-        if (selectedFiles.length > 0) {
-            statusDiv.innerText = `已選擇 ${selectedFiles.length} 張圖片`;
-            convertBtn.disabled = false;
-        } else {
-            statusDiv.innerText = "尚未選擇檔案";
-            convertBtn.disabled = true;
-        }
+    // 處理選擇的圖片
+    function handleFiles(e) {
+        const files = Array.from(e.target.files);
+        // 過濾只留圖片格式
+        const validImages = files.filter(f => f.type.startsWith('image/'));
+        
+        imageFiles = imageFiles.concat(validImages);
+        updatePreview();
     }
 
-    // 核心運算：100% 前端打包 PDF
-    convertBtn.addEventListener('click', async () => {
-        try {
-            convertBtn.disabled = true;
-            statusDiv.innerText = "⚡ 正在本地處理中，請稍候...";
+    // 更新網頁預覽 UI
+    function updatePreview() {
+        const dict = getDict();
+        previewGrid.innerHTML = '';
 
-            // 1. 建立一個全新的 PDF 文件
+        if (imageFiles.length === 0) {
+            previewGrid.style.display = 'none';
+            controlPanel.style.display = 'none';
+            statusDiv.innerText = dict.img_pdf_status_default || "尚未選取圖片";
+            return;
+        }
+
+        previewGrid.style.display = 'grid';
+        controlPanel.style.display = 'block';
+        statusDiv.innerText = `${dict.img_pdf_status_selected || "已選取 "}${imageFiles.length}${dict.img_pdf_status_items || " 張圖片"}`;
+
+        imageFiles.forEach((file, index) => {
+            const card = document.createElement('div');
+            card.className = 'img-card';
+            
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            
+            card.appendChild(img);
+            previewGrid.appendChild(card);
+        });
+    }
+
+    // 清空圖片
+    clearBtn.addEventListener('click', () => {
+        const dict = getDict();
+        imageFiles = [];
+        fileInput.value = '';
+        updatePreview();
+        statusDiv.innerText = dict.img_pdf_status_cleared || "已清空所有圖片";
+    });
+
+    // 核心邏輯：將圖片打包轉換成 PDF (使用 pdf-lib)
+    convertBtn.addEventListener('click', async () => {
+        const dict = getDict();
+        if (imageFiles.length === 0) {
+            alert(dict.img_pdf_status_empty || "請先上傳至少一張圖片！");
+            return;
+        }
+
+        statusDiv.innerText = dict.img_pdf_status_generating || "⚡ 正在本地打包 PDF 中，請稍候...";
+
+        try {
+            // 建立新的 PDF 文件
             const pdfDoc = await PDFLib.PDFDocument.create();
 
-            // 2. 利用非同步迴圈讀取並嵌入每一張圖片（非阻塞，確保網頁不會卡死）
-            for (const file of selectedFiles) {
+            for (const file of imageFiles) {
                 const arrayBuffer = await file.arrayBuffer();
                 let image;
-                
-                // 根據圖片格式選擇正確的編碼嵌入器
+
+                // 根據圖片格式使用 pdf-lib 對應的嵌入方法
                 if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
                     image = await pdfDoc.embedJpg(arrayBuffer);
                 } else if (file.type === 'image/png') {
                     image = await pdfDoc.embedPng(arrayBuffer);
                 } else {
-                    continue; // 忽略不支援的格式
+                    // 若為 webp 或其他格式，先畫到 Canvas 轉呈 PNG ArrayBuffer 後嵌入
+                    const pngBuffer = await convertToPngBuffer(file);
+                    image = await pdfDoc.embedPng(pngBuffer);
                 }
 
-                // 獲取圖片原始寬高
-                const { width, height } = image.scale(1);
-
-                // 在 PDF 中新增一頁，大小與圖片完全相同
-                const page = pdfDoc.addPage([width, height]);
-
-                // 將圖片畫在該頁面上（座標從左下角 0,0 開始）
+                // 取得原圖尺寸，動態建立與圖片同寬高的 PDF 頁面（無損解析度）
+                const page = pdfDoc.addPage([image.width, image.height]);
                 page.drawImage(image, {
                     x: 0,
                     y: 0,
-                    width: width,
-                    height: height,
+                    width: image.width,
+                    height: image.height,
                 });
             }
 
-            // 3. 將記憶體中的 PDF 資料序列化（Serialize）
+            // 儲存並輸出 PDF Blob
             const pdfBytes = await pdfDoc.save();
-
-            // 4. 關鍵亮點：利用 Blob 建立一個本地的虛擬下載連結
             const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-            const blobUrl = URL.createObjectURL(blob);
-
-            // 5. 模擬點擊下載
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.href = blobUrl;
-            downloadAnchor.download = `converted_${Date.now()}.pdf`;
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
             
-            // 6. 清理記憶體，防止大檔案記憶體溢出
-            document.body.removeChild(downloadAnchor);
-            URL.revokeObjectURL(blobUrl);
+            // 下載檔案
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `images_exported_${Date.now()}.pdf`;
+            link.click();
+            URL.revokeObjectURL(link.href);
 
-            statusDiv.innerText = "✅ 轉檔完成！已開始下載。";
-            convertBtn.disabled = false;
-        } catch (error) {
-            console.error(error);
-            statusDiv.innerText = "❌ 轉檔失敗，請確認檔案格式是否正確。";
-            convertBtn.disabled = false;
+            statusDiv.innerText = dict.img_pdf_status_success || "🎉 PDF 下載成功！";
+
+        } catch (err) {
+            console.error(err);
+            statusDiv.innerText = `❌ 轉換失敗：${err.message}`;
         }
     });
+
+    // 將非 JPG/PNG 圖片透過 Canvas 轉成 PNG ArrayBuffer
+    function convertToPngBuffer(file) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                canvas.toBlob(async (blob) => {
+                    const buffer = await blob.arrayBuffer();
+                    resolve(buffer);
+                }, 'image/png');
+            };
+            img.onerror = reject;
+            img.src = URL.createObjectURL(file);
+        });
+    }
 </script>
 
 </body>

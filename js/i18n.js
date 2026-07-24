@@ -12,9 +12,21 @@ const translations = {
     main_subtitle: "一個專為個人與企業用戶打造的「100% 本地運算、斷網可用」網頁工具箱。",
     section_tools: "🛠 現有工具清單",
 
-    // 1. 圖片轉 PDF (image-pdf.html)
+    // --- zh (繁體中文) 追加部分 ---
+    image_pdf_page_title: "🖼 本地圖片轉 PDF 工具 - 極速本地隱私工具箱",
     tool_img_pdf_title: "🖼 圖片轉 PDF 工具",
-    tool_img_pdf_desc: "將多張 JPG、PNG 圖片，在前端極速打包成單一 PDF 檔案。",
+    img_pdf_heading: "🖼 本地圖片轉 PDF 工具",
+    img_pdf_subtitle: "🔒 100% 在本地瀏覽器將圖片打包成 PDF，隱私安全免上傳",
+    img_pdf_dropzone: "拖曳圖片 (.jpg, .png, .webp) 到此處，或點擊選擇檔案",
+    img_pdf_btn_clear: "🗑 清空所有圖片",
+    img_pdf_btn_convert: "🚀 開始轉換並下載 PDF",
+    img_pdf_status_default: "尚未選取圖片",
+    img_pdf_status_selected: "已選取 ",
+    img_pdf_status_items: " 張圖片",
+    img_pdf_status_generating: "⚡ 正在本地打包 PDF 中，請稍候...",
+    img_pdf_status_success: "🎉 PDF 下載成功！",
+    img_pdf_status_cleared: "已清空所有圖片",
+    img_pdf_status_empty: "請先上傳至少一張圖片！",
 
     // 2. Excel 轉換器 (excel-tool.html)
     excel_page_title: "安全 Excel 轉 CSV/JSON - 100% 本地隱私安全",
@@ -92,9 +104,21 @@ const translations = {
     main_subtitle: "100% Client-Side Processing & Offline Ready Web Toolkits Built for Security and Speed.",
     section_tools: "🛠 Available Tools",
 
-    // 1. Image to PDF (image-pdf.html)
+    // --- en (English) 追加部分 ---
+    image_pdf_page_title: "🖼 Local Image to PDF - Local Privacy Toolkits",
     tool_img_pdf_title: "🖼 Image to PDF Converter",
-    tool_img_pdf_desc: "Convert multiple JPG or PNG images into a single PDF directly inside your browser.",
+    img_pdf_heading: "🖼 Local Image to PDF Converter",
+    img_pdf_subtitle: "🔒 Pack images into a PDF 100% locally in your browser. Zero file uploads.",
+    img_pdf_dropzone: "Drag & drop images (.jpg, .png, .webp) here, or click to browse",
+    img_pdf_btn_clear: "🗑 Clear All Images",
+    img_pdf_btn_convert: "🚀 Convert & Download PDF",
+    img_pdf_status_default: "No images selected",
+    img_pdf_status_selected: "Selected ",
+    img_pdf_status_items: " image(s)",
+    img_pdf_status_generating: "⚡ Packaging PDF locally, please wait...",
+    img_pdf_status_success: "🎉 PDF downloaded successfully!",
+    img_pdf_status_cleared: "Cleared all images",
+    img_pdf_status_empty: "Please select at least one image!"
 
     // 2. Excel Converter (excel-tool.html)
     excel_page_title: "Secure Excel to CSV/JSON - 100% Local & Private",

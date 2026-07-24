@@ -1,1 +1,6 @@
 old/
+# 忽略 .gitignore 本身
+.gitignore
+
+# 忽略 ads.txt
+ads.txt
