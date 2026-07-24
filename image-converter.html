@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>本地圖片格式轉換與壓縮工具</title>
+  <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
   <style>
     :root {
       --bg-color: #121212;
@@ -91,8 +92,8 @@
   <h1>🖼️ 本地圖片轉檔與壓縮工具</h1>
   
   <div class="drop-zone" id="dropZone">
-    <p>將圖片拖曳至此，或點擊選擇檔案 (支援 WebP, AVIF, PNG, JPG...)</p>
-    <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
+    <p>將圖片拖曳至此，或點擊選擇檔案 (支援 WebP, AVIF, PNG, JPG, HEIC...)</p>
+    <input type="file" id="fileInput" multiple accept="image/*,.heic,.heif" style="display: none;">
   </div>
 
   <div class="controls">
@@ -144,11 +145,46 @@
   });
 
   // 處理檔案轉換
-  function handleFiles(files) {
-    Array.from(files).forEach(file => {
-      if (!file.type.startsWith('image/')) return;
-      convertImage(file);
-    });
+  async function handleFiles(files) {
+    for (const file of Array.from(files)) {
+      const isHeic = file.name.toLowerCase().endsWith('.heic') ||
+                     file.name.toLowerCase().endsWith('.heif') ||
+                     file.type === 'image/heic' ||
+                     file.type === 'image/heif';
+
+      // 如果不是一般圖片也不是 HEIC 就跳過
+      if (!file.type.startsWith('image/') && !isHeic) continue;
+
+      if (isHeic) {
+        await convertHeicImage(file);
+      } else {
+        convertImage(file);
+      }
+    }
+  }
+
+  // 專門處理 HEIC/HEIF 轉檔（iPhone 照片常見格式）
+  async function convertHeicImage(file) {
+    try {
+      const targetFormat = formatSelect.value;
+      const quality = parseFloat(qualityRange.value) / 100;
+
+      // 利用 heic2any 在瀏覽器本機將 HEIC 解碼成 Blob
+      const convertedBlob = await heic2any({
+        blob: file,
+        toType: targetFormat,
+        quality: quality
+      });
+
+      // 處理多圖包或單圖結果
+      const finalBlob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+
+      // 渲染預覽與下載按鈕
+      renderPreviewItem(file.name, URL.createObjectURL(finalBlob), finalBlob, targetFormat);
+    } catch (error) {
+      console.error('HEIC 轉檔失敗:', error);
+      alert(`檔案 ${file.name} 轉換失敗，可能檔案毀損或格式不支援。`);
+    }
   }
 
   function convertImage(file) {

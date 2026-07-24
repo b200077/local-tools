@@ -91,8 +91,10 @@ const translations = {
     pdf_ppt_btn_google: "從 Google 簡報匯入並提取",
     pdf_ppt_label_result: "提取結果：",
     pdf_ppt_ph_result: "提取出來的文字將會顯示在這裡...",
+
+  
     tool_image_converter_title: "圖片格式轉換與壓縮",
-    tool_image_converter_desc: "支援 WebP/AVIF 轉檔與無損壓縮，輕鬆調整品質與大小，檔案零上傳。"
+    tool_image_converter_desc: "支援 iPhone (HEIC)、WebP、AVIF 轉檔與壓縮，輕鬆調整品質大小，檔案 100% 不離機。"
     
   },
   en: {
@@ -188,7 +190,7 @@ const translations = {
     pdf_ppt_ph_result: "Extracted text will appear here...",
 
     tool_image_converter_title: "Image Converter & Compressor",
-    tool_image_converter_desc: "Convert WebP/AVIF formats and compress image sizes instantly in browser. 100% private."
+    tool_image_converter_desc: "Convert iPhone HEIC, WebP, and AVIF formats, adjust quality, and compress sizes—100% offline."
   }
 };
 
