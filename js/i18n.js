@@ -90,7 +90,10 @@ const translations = {
     pdf_ppt_btn_extract: "開始提取純文字",
     pdf_ppt_btn_google: "從 Google 簡報匯入並提取",
     pdf_ppt_label_result: "提取結果：",
-    pdf_ppt_ph_result: "提取出來的文字將會顯示在這裡..."
+    pdf_ppt_ph_result: "提取出來的文字將會顯示在這裡...",
+    tool_image_converter_title: "圖片格式轉換與壓縮",
+    tool_image_converter_desc: "支援 WebP/AVIF 轉檔與無損壓縮，輕鬆調整品質與大小，檔案零上傳。"
+    
   },
   en: {
     // General / Navbar / Footer
@@ -182,7 +185,10 @@ const translations = {
     pdf_ppt_btn_extract: "Start Text Extraction",
     pdf_ppt_btn_google: "Import & Extract from Google Slides",
     pdf_ppt_label_result: "Extracted Result:",
-    pdf_ppt_ph_result: "Extracted text will appear here..."
+    pdf_ppt_ph_result: "Extracted text will appear here...",
+
+    tool_image_converter_title: "Image Converter & Compressor",
+    tool_image_converter_desc: "Convert WebP/AVIF formats and compress image sizes instantly in browser. 100% private."
   }
 };
 

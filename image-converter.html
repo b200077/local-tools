@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>本地圖片格式轉換與壓縮工具</title>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --text-color: #e0e0e0;
+      --accent-color: #4caf50;
+      --border-color: #333;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 800px;
+      background: var(--card-bg);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    h1 { margin-top: 0; text-align: center; }
+    .drop-zone {
+      border: 2px dashed #555;
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.3s;
+      margin-bottom: 20px;
+    }
+    .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent-color); }
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+      background: #2a2a2a;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    .control-group { display: flex; flex-direction: column; gap: 5px; }
+    select, input[type="range"] {
+      padding: 8px;
+      background: #333;
+      color: #fff;
+      border: 1fr solid #444;
+      border-radius: 4px;
+    }
+    .preview-list { display: flex; flex-direction: column; gap: 10px; }
+    .preview-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #2a2a2a;
+      padding: 10px 15px;
+      border-radius: 6px;
+    }
+    .preview-item img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+    .btn {
+      background: var(--accent-color);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .btn:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🖼️ 本地圖片轉檔與壓縮工具</h1>
+  
+  <div class="drop-zone" id="dropZone">
+    <p>將圖片拖曳至此，或點擊選擇檔案 (支援 WebP, AVIF, PNG, JPG...)</p>
+    <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <label for="formatSelect">目標格式：</label>
+      <select id="formatSelect">
+        <option value="image/jpeg">JPG (適合照片/縮檔)</option>
+        <option value="image/png">PNG (無損/透明背景)</option>
+        <option value="image/webp">WebP (高效現代格式)</option>
+      </select>
+    </div>
+    
+    <div class="control-group">
+      <label for="qualityRange">壓縮品質 (JPG/WebP)：<span id="qualityVal">80</span>%</label>
+      <input type="range" id="qualityRange" min="10" max="100" value="80">
+    </div>
+  </div>
+
+  <div class="preview-list" id="previewList"></div>
+</div>
+
+<script>
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const formatSelect = document.getElementById('formatSelect');
+  const qualityRange = document.getElementById('qualityRange');
+  const qualityVal = document.getElementById('qualityVal');
+  const previewList = document.getElementById('previewList');
+
+  // 顯示 Slider 數值
+  qualityRange.addEventListener('input', (e) => {
+    qualityVal.textContent = e.target.value;
+  });
+
+  // 點擊上傳
+  dropZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+  // 拖曳上傳 event
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+  });
+
+  // 處理檔案轉換
+  function handleFiles(files) {
+    Array.from(files).forEach(file => {
+      if (!file.type.startsWith('image/')) return;
+      convertImage(file);
+    });
+  }
+
+  function convertImage(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        // 建立 Canvas 畫布進行本地渲染與解碼
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        const targetFormat = formatSelect.value;
+        const quality = parseFloat(qualityRange.value) / 100;
+
+        // 如果目標是 JPG，加上白底避免透明區域變黑
+        if (targetFormat === 'image/jpeg') {
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        ctx.drawImage(img, 0, 0);
+
+        // 轉成二進位 Blob (純本地處理)
+        canvas.toBlob((blob) => {
+          renderPreviewItem(file.name, img.src, blob, targetFormat);
+        }, targetFormat, quality);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // 渲染轉換成果列
+  function renderPreviewItem(originalName, originalSrc, convertedBlob, targetFormat) {
+    const item = document.createElement('div');
+    item.className = 'preview-item';
+
+    const extMap = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' };
+    const newExt = extMap[targetFormat] || '.jpg';
+    const newFileName = originalName.substring(0, originalName.lastIndexOf('.')) + newExt;
+    
+    const downloadUrl = URL.createObjectURL(convertedBlob);
+    const sizeInMB = (convertedBlob.size / (1024 * 1024)).toFixed(2);
+
+    item.innerHTML = `
+      <img src="${originalSrc}" alt="縮圖">
+      <div>
+        <strong>${newFileName}</strong><br>
+        <small>大小: ${sizeInMB} MB</small>
+      </div>
+      <a href="${downloadUrl}" download="${newFileName}" class="btn">下載轉換檔</a>
+    `;
+
+    previewList.prepend(item);
+  }
+</script>
+</body>
+</html>
