@@ -1,207 +1,193 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-i18n="brand_name">🔒 極速本地隱私工具箱</title>
-    <style>
-        /* 深色質感主題樣式 */
-        :root {
-            --bg-color: #0d1117;
-            --card-bg: #161b22;
-            --card-border: #30363d;
-            --text-main: #f0f6fc;
-            --text-sub: #8b949e;
-            --accent-color: #58a6ff;
-            --btn-bg: #21262d;
-            --btn-hover: #30363d;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.2rem 2rem;
-            border-bottom: 1px solid var(--card-border);
-            background-color: rgba(13, 17, 23, 0.8);
-            backdrop-filter: blur(8px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .brand-logo {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--text-main);
-        }
-
-        .lang-btn {
-            background-color: var(--btn-bg);
-            color: var(--text-main);
-            border: 1px solid var(--card-border);
-            padding: 6px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .lang-btn:hover {
-            background-color: var(--btn-hover);
-            border-color: #8b949e;
-        }
-
-        .container {
-            max-width: 960px;
-            margin: 3rem auto;
-            padding: 0 1.5rem;
-        }
-
-        .hero {
-            text-align: center;
-            margin-bottom: 3.5rem;
-        }
-
-        .hero h1 {
-            font-size: 2.2rem;
-            margin-bottom: 0.8rem;
-            letter-spacing: -0.5px;
-        }
-
-        .hero p {
-            color: var(--text-sub);
-            font-size: 1.1rem;
-            max-width: 650px;
-            margin: 0 auto;
-        }
-
-        .section-title {
-            font-size: 1.3rem;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid var(--card-border);
-            padding-bottom: 0.5rem;
-            color: var(--text-main);
-        }
-
-        /* 經典黑色字卡 (Grid layout) */
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .tool-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 8px;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
-
-        .tool-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent-color);
-        }
-
-        .tool-card h3 {
-            margin-top: 0;
-            margin-bottom: 0.8rem;
-            font-size: 1.15rem;
-            color: var(--text-main);
-        }
-
-        .tool-card p {
-            color: var(--text-sub);
-            font-size: 0.95rem;
-            margin-bottom: 1.5rem;
-            flex-grow: 1;
-        }
-
-        .tool-link {
-            color: var(--accent-color);
-            text-decoration: none;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .tool-link:hover {
-            text-decoration: underline;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="brand_name">🔒 極速本地隱私工具箱</title>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7546597219509158"
+     crossorigin="anonymous"></script>
+<style>
+/* 深色質感主題樣式 */
+:root {
+--bg-color: #0d1117;
+--card-bg: #161b22;
+--card-border: #30363d;
+--text-main: #f0f6fc;
+--text-sub: #8b949e;
+--accent-color: #58a6ff;
+--btn-bg: #21262d;
+--btn-hover: #30363d;
+}
+body {
+background-color: var(--bg-color);
+color: var(--text-main);
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+margin: 0;
+padding: 0;
+line-height: 1.6;
+}
+header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 1.2rem 2rem;
+border-bottom: 1px solid var(--card-border);
+background-color: rgba(13, 17, 23, 0.8);
+backdrop-filter: blur(8px);
+position: sticky;
+top: 0;
+z-index: 100;
+}
+.brand-logo {
+font-size: 1.2rem;
+font-weight: 600;
+color: var(--text-main);
+}
+.lang-btn {
+background-color: var(--btn-bg);
+color: var(--text-main);
+border: 1px solid var(--card-border);
+padding: 6px 14px;
+border-radius: 6px;
+cursor: pointer;
+font-weight: 500;
+transition: all 0.2s ease;
+}
+.lang-btn:hover {
+background-color: var(--btn-hover);
+border-color: #8b949e;
+}
+.container {
+max-width: 960px;
+margin: 3rem auto;
+padding: 0 1.5rem;
+}
+.hero {
+text-align: center;
+margin-bottom: 3.5rem;
+}
+.hero h1 {
+font-size: 2.2rem;
+margin-bottom: 0.8rem;
+letter-spacing: -0.5px;
+}
+.hero p {
+color: var(--text-sub);
+font-size: 1.1rem;
+max-width: 650px;
+margin: 0 auto;
+}
+.section-title {
+font-size: 1.3rem;
+margin-bottom: 1.5rem;
+border-bottom: 1px solid var(--card-border);
+padding-bottom: 0.5rem;
+color: var(--text-main);
+}
+/* 經典黑色字卡 (Grid layout) */
+.tools-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+gap: 1.5rem;
+}
+.tool-card {
+background-color: var(--card-bg);
+border: 1px solid var(--card-border);
+border-radius: 8px;
+padding: 1.5rem;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.tool-card:hover {
+transform: translateY(-2px);
+border-color: var(--accent-color);
+}
+.tool-card h3 {
+margin-top: 0;
+margin-bottom: 0.8rem;
+font-size: 1.15rem;
+color: var(--text-main);
+}
+.tool-card p {
+color: var(--text-sub);
+font-size: 0.95rem;
+margin-bottom: 1.5rem;
+flex-grow: 1;
+}
+.tool-link {
+color: var(--accent-color);
+text-decoration: none;
+font-weight: 500;
+display: inline-flex;
+align-items: center;
+gap: 4px;
+}
+.tool-link:hover {
+text-decoration: underline;
+}
+.ad-slot {
+margin: 2.5rem 0;
+text-align: center;
+}
+</style>
 </head>
 <body>
+<header>
+<div class="brand-logo" data-i18n="brand_name">🔒 極速本地隱私工具箱</div>
+<button id="lang-toggle" class="lang-btn" onclick="toggleLanguage()">English</button>
+</header>
+<div class="container">
+<section class="hero">
+<h1 data-i18n="main_title">🔒 極速本地隱私工具箱</h1>
+<p data-i18n="main_subtitle">一個專為個人與企業用戶打造的「100% 本地運算、斷網可用」網頁工具箱。</p>
+</section>
 
-    <header>
-        <div class="brand-logo" data-i18n="brand_name">🔒 極速本地隱私工具箱</div>
-        <button id="lang-toggle" class="lang-btn" onclick="toggleLanguage()">English</button>
-    </header>
+<h2 class="section-title" data-i18n="section_tools">🛠 現有工具清單</h2>
+<div class="tools-grid">
+<div class="tool-card">
+<div>
+<h3 data-i18n="tool_img_pdf_title">🖼 圖片轉 PDF 工具</h3>
+<p data-i18n="tool_img_pdf_desc">將多張 JPG、PNG 圖片，在前端極速打包成單一 PDF 檔案。</p>
+</div>
+<a href="image-pdf.html" class="tool-link" data-i18n="btn_use_now">立即使用 →</a>
+</div>
 
-    <div class="container">
-        <section class="hero">
-            <h1 data-i18n="main_title">🔒 極速本地隱私工具箱</h1>
-            <p data-i18n="main_subtitle">一個專為個人與企業用戶打造的「100% 本地運算、斷網可用」網頁工具箱。</p>
-        </section>
+<div class="tool-card">
+<div>
+<h3 data-i18n="tool_excel_title">📊 Excel 轉換器 (CSV/JSON)</h3>
+<p data-i18n="tool_excel_desc">將 .xlsx 或 .xls 檔案轉換成 CSV 或 JSON 格式，支援多工作表與 UTF-8 BOM 防亂碼。</p>
+</div>
+<a href="excel-tool.html" class="tool-link" data-i18n="btn_use_now">立即使用 →</a>
+</div>
 
-        <h2 class="section-title" data-i18n="section_tools">🛠 現有工具清單</h2>
+<div class="tool-card">
+<div>
+<h3 data-i18n="tool_video_title">🎥 本地影音轉換與剪輯工具</h3>
+<p data-i18n="tool_video_desc">純前端 FFmpeg WebAssembly 技術，影片無損秒切與格式轉換，檔案完全不流出。</p>
+</div>
+<a href="video-tool.html" class="tool-link" data-i18n="btn_use_now">立即使用 →</a>
+</div>
 
-        <div class="tools-grid">
-            <div class="tool-card">
-                <div>
-                    <h3 data-i18n="tool_img_pdf_title">🖼 圖片轉 PDF 工具</h3>
-                    <p data-i18n="tool_img_pdf_desc">將多張 JPG、PNG 圖片，在前端極速打包成單一 PDF 檔案。</p>
-                </div>
-                <a href="image-pdf.html" class="tool-link" data-i18n="btn_use_now">立即使用 →</a>
-            </div>
+<div class="tool-card">
+<div>
+<h3 data-i18n="tool_pdf_ppt_title">📄 本地 PDF/PPTX 轉文字工具</h3>
+<p data-i18n="tool_pdf_ppt_desc">直接在瀏覽器解析 PDF 與 PowerPoint 簡報並提取純文字內容。</p>
+</div>
+<a href="pdf-ppt-text.html" class="tool-link" data-i18n="btn_use_now">立即使用 →</a>
+</div>
 
-            <div class="tool-card">
-                <div>
-                    <h3 data-i18n="tool_excel_title">📊 Excel 轉換器 (CSV/JSON)</h3>
-                    <p data-i18n="tool_excel_desc">將 .xlsx 或 .xls 檔案轉換成 CSV 或 JSON 格式，支援多工作表與 UTF-8 BOM 防亂碼。</p>
-                </div>
-                <a href="excel-tool.html" class="tool-link" data-i18n="btn_use_now">立即使用 →</a>
-            </div>
+<div class="tool-card">
+<div>
+<h3 data-i18n="tool_image_converter_title">圖片格式轉換與壓縮</h3>
+<p data-i18n="tool_image_converter_desc">支援 WebP/AVIF 轉檔與無損壓縮，輕鬆調整品質與大小，檔案零上傳。</p>
+</div>
+<a href="image-converter.html" class="tool-link" data-i18n="btn_use_now">立即使用 →</a>
+</div>
+</div>
 
-            <div class="tool-card">
-                <div>
-                    <h3 data-i18n="tool_video_title">🎥 本地影音轉換與剪輯工具</h3>
-                    <p data-i18n="tool_video_desc">純前端 FFmpeg WebAssembly 技術，影片無損秒切與格式轉換，檔案完全不流出。</p>
-                </div>
-                <a href="video-tool.html" class="tool-link" data-i18n="btn_use_now">立即使用 →</a>
-            </div>
-
-            <div class="tool-card">
-                <div>
-                    <h3 data-i18n="tool_pdf_ppt_title">📄 本地 PDF/PPTX 轉文字工具</h3>
-                    <p data-i18n="tool_pdf_ppt_desc">直接在瀏覽器解析 PDF 與 PowerPoint 簡報並提取純文字內容。</p>
-                </div>
-                <a href="pdf-ppt-text.html" class="tool-link" data-i18n="btn_use_now">立即使用 →</a>
-            </div>
-
-            <div class="tool-card">
-                <div>
-                    <h3 data-i18n="tool_image_converter_title">圖片格式轉換與壓縮</h3>
-                    <p data-i18n="tool_image_converter_desc">支援 WebP/AVIF 轉檔與無損壓縮，輕鬆調整品質與大小，檔案零上傳。</p>
-                </div>
-                <a href="image-converter.html" class="tool-link" data-i18n="btn_use_now">立即使用 →</a>
-            </div>
-        </div>
-    </div>
-
-    <script src="js/i18n.js"></script>
+</div>
+<script src="js/i18n.js"></script>
 </body>
 </html>
