@@ -193,8 +193,8 @@ border-left: 4px solid #ffc107;
 <script src="js/i18n.js"></script>
 <script>
 // 請在此處填入您在 Google Cloud Console 申請的 Client ID 與 API Key
-const GOOGLE_CLIENT_ID = '992882817551-18jnv0omsvagifn2f8ncc117jmt25k1q.apps.googleusercontent.com';
-const GOOGLE_API_KEY = 'AIzaSyDYqg5WRQUWqjs-ujezBeGts3TbJbBqsUc'; // Picker 需要，與 Client ID 分開申請
+const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+const GOOGLE_API_KEY = 'YOUR_GOOGLE_API_KEY'; // Picker 需要，與 Client ID 分開申請
 
 // pdf.js worker 設定（必須指向與上方載入版本相同的 worker）
 if (typeof pdfjsLib !== 'undefined') {
@@ -212,6 +212,7 @@ let accessToken = null;
 let pickerApiLoaded = false;
 let currentMode = 'local'; // 'local' 或 'google'
 let selectedGoogleFileId = null;
+let selectedGoogleFileMime = null;
 
 // 取得當前語言字典輔助函式
 function getDict() {
@@ -291,6 +292,7 @@ async function pickerCallback(data) {
   if (data.action === google.picker.Action.PICKED) {
     const doc = data.docs[0];
     selectedGoogleFileId = doc.id;
+    selectedGoogleFileMime = doc.mimeType;
     currentMode = 'google';
     const dict = getDict();
     statusText.innerText = `${dict.pdf_ppt_status_selected_cloud || "已選取雲端簡報："}${doc.name}`;
@@ -421,26 +423,36 @@ async function processGooglePresentation() {
   setButtonsDisabled(true);
   outputText.value = "";
 
-  // 使用 Drive API 導出功能，直接在雲端把簡報轉成 PPTX 丟回給前端瀏覽器
-  const exportUrl = `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=application/vnd.openxmlformats-officedocument.presentationml.presentation`;
+  // Google 原生簡報 (application/vnd.google-apps.presentation) 需要用 export 轉成 pptx。
+  // 若使用者選的是「已經是 pptx/pdf、直接放在雲端硬碟裡」的檔案，則不能用 export（會 400/403），
+  // 要改用 files.get?alt=media 直接下載原始位元組。
+  const isNativeGoogleSlide = selectedGoogleFileMime === 'application/vnd.google-apps.presentation';
+  const downloadUrl = isNativeGoogleSlide
+    ? `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=application/vnd.openxmlformats-officedocument.presentationml.presentation`
+    : `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
 
   let arrayBuffer = null;
   try {
-    const response = await fetch(exportUrl, {
+    const response = await fetch(downloadUrl, {
       headers: { 'Authorization': `Bearer ${accessToken}` }
     });
     if (!response.ok) {
+      let detail = '';
+      try {
+        const errJson = await response.json();
+        detail = errJson?.error?.message || '';
+      } catch (_) { /* 回應不是 JSON，忽略 */ }
       if (response.status === 401) {
-        // token 過期，清掉讓下次重新授權
-        accessToken = null;
+        accessToken = null; // token 過期，清掉讓下次重新授權
       }
-      throw new Error('雲端匯出失敗，請確認該簡報的權限是否允許唯讀，或 Token 已過期。');
+      throw new Error(`(HTTP ${response.status}) ${detail || '雲端下載失敗，請確認該檔案權限，或 Token 已過期。'}`);
     }
     arrayBuffer = await response.arrayBuffer();
     statusText.innerText = dict.pdf_ppt_status_parsing_cloud || "已直連接收檔案，正在本地解析文字...";
 
-    // 送進本地解析引擎（Google 匯出的固定是 pptx 格式）
-    const parsedText = await runCoreParser(arrayBuffer, 'google-export.pptx');
+    // 依實際 mimeType 判斷送進哪個解析器（PDF 或 pptx）
+    const fakeFileName = selectedGoogleFileMime === 'application/pdf' ? 'google-file.pdf' : 'google-file.pptx';
+    const parsedText = await runCoreParser(arrayBuffer, fakeFileName);
     statusText.innerText = dict.pdf_ppt_status_google_success || "Google 簡報文字提取成功！";
     outputText.value = parsedText;
   } catch (error) {
