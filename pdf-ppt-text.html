@@ -248,7 +248,8 @@ window.onload = function () {
       callback: async (tokenResponse) => {
         if (tokenResponse && tokenResponse.access_token) {
           accessToken = tokenResponse.access_token;
-          openPicker();
+          const dict = getDict();
+          statusText.innerText = dict.pdf_ppt_status_auth_done || "✅ 已完成授權，請再點一次「開啟雲端硬碟選取檔案」來選檔（瀏覽器安全機制要求選檔視窗須由點擊直接觸發）。";
         }
       },
     });
