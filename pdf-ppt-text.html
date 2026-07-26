@@ -1,360 +1,461 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-i18n="pdf_ppt_page_title">📄 本地 PDF/PPTX/Google簡報 轉文字工具 - 極速本地隱私工具箱</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <style>
-        body { 
-            font-family: sans-serif; 
-            max-width: 800px; 
-            margin: 20px auto; 
-            padding: 20px; 
-            line-height: 1.6; 
-            background-color: #1a1a1a; 
-            color: #e0e0e0; 
-        }
-        header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 20px; 
-        }
-        .nav-link { color: #3993ff; text-decoration: none; font-weight: bold; }
-        .nav-link:hover { text-decoration: underline; }
-        .lang-btn { background-color: #333; color: #fff; border: 1px solid #555; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .lang-btn:hover { background-color: #444; }
-
-        .container { 
-            border: 1px solid #333; 
-            padding: 20px; 
-            border-radius: 8px; 
-            background-color: #242424; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
-        }
-        h2 {
-            margin-top: 0;
-            color: #ffffff;
-        }
-        .status { 
-            color: #aaa; 
-            font-style: italic; 
-            margin: 10px 0; 
-        }
-        .form-group { 
-            margin: 20px 0; 
-            padding-bottom: 15px;
-            border-bottom: 1px solid #333;
-        }
-        .form-group:last-of-type {
-            border-bottom: none;
-        }
-        .form-group label { 
-            display: block;
-            margin-bottom: 8px; 
-            font-weight: bold; 
-            color: #b0b0b0;
-        }
-        input[type="file"] { 
-            background: #333;
-            color: #fff;
-            padding: 8px;
-            border: 1px solid #555;
-            border-radius: 4px;
-            max-width: 100%;
-        }
-        input::file-selector-button {
-            background: #444;
-            color: #fff;
-            border: 1px solid #666;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 10px;
-            transition: background 0.2s;
-        }
-        input::file-selector-button:hover {
-            background: #555;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            background: #333;
-            color: #fff;
-            border: 1px solid #555;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 14px;
-        }
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #3993ff;
-        }
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        button { 
-            padding: 10px 20px; 
-            color: white; 
-            border: none; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            font-size: 16px; 
-            transition: background 0.2s;
-        }
-        .btn-primary { background-color: #28a745; }
-        .btn-primary:hover:not(:disabled) { background-color: #218838; }
-        .btn-google { background-color: #4285F4; }
-        .btn-google:hover:not(:disabled) { background-color: #357ae8; }
-        
-        button:disabled { 
-            background-color: #555 !important; 
-            color: #aaa; 
-            cursor: not-allowed; 
-        }
-        .result-section {
-            margin-top: 25px;
-        }
-        textarea {
-            width: 100%;
-            height: 300px;
-            background-color: #1e1e1e;
-            color: #f0f0f0;
-            border: 1px solid #444;
-            border-radius: 6px;
-            padding: 12px;
-            box-sizing: border-box;
-            resize: vertical;
-            font-family: monospace;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        textarea:focus {
-            outline: none;
-            border-color: #3993ff;
-            box-shadow: 0 0 5px rgba(57, 147, 255, 0.5);
-        }
-        .privacy-tip {
-            font-size: 13px;
-            color: #ffc107;
-            background-color: rgba(255, 193, 7, 0.1);
-            padding: 8px 12px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            border-left: 4px solid #ffc107;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="pdf_ppt_page_title">📄 本地 PDF/PPTX/Google簡報 轉文字工具 - 極速本地隱私工具箱</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<!-- 新增：Google Picker（讓使用者直接在畫面中選取雲端硬碟檔案） -->
+<script src="https://apis.google.com/js/api.js" async defer></script>
+<!-- 新增：PDF 解析 (pdf.js) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- 新增：PPTX 解析 (jszip 解開 zip 結構讀 slide xml) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+body {
+font-family: sans-serif;
+max-width: 800px;
+margin: 20px auto;
+padding: 20px;
+line-height: 1.6;
+background-color: #1a1a1a;
+color: #e0e0e0;
+}
+header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 20px;
+}
+.nav-link { color: #3993ff; text-decoration: none; font-weight: bold; }
+.nav-link:hover { text-decoration: underline; }
+.lang-btn { background-color: #333; color: #fff; border: 1px solid #555; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+.lang-btn:hover { background-color: #444; }
+.container {
+border: 1px solid #333;
+padding: 20px;
+border-radius: 8px;
+background-color: #242424;
+box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+h2 {
+margin-top: 0;
+color: #ffffff;
+}
+.status {
+color: #aaa;
+font-style: italic;
+margin: 10px 0;
+}
+.form-group {
+margin: 20px 0;
+padding-bottom: 15px;
+border-bottom: 1px solid #333;
+}
+.form-group:last-of-type {
+border-bottom: none;
+}
+.form-group label {
+display: block;
+margin-bottom: 8px;
+font-weight: bold;
+color: #b0b0b0;
+}
+input[type="file"] {
+background: #333;
+color: #fff;
+padding: 8px;
+border: 1px solid #555;
+border-radius: 4px;
+max-width: 100%;
+}
+input::file-selector-button {
+background: #444;
+color: #fff;
+border: 1px solid #666;
+padding: 6px 12px;
+border-radius: 4px;
+cursor: pointer;
+margin-right: 10px;
+transition: background 0.2s;
+}
+input::file-selector-button:hover {
+background: #555;
+}
+input[type="text"] {
+width: 100%;
+padding: 10px;
+background: #333;
+color: #fff;
+border: 1px solid #555;
+border-radius: 4px;
+box-sizing: border-box;
+font-size: 14px;
+}
+input[type="text"]:focus {
+outline: none;
+border-color: #3993ff;
+}
+.btn-group {
+display: flex;
+gap: 10px;
+margin-top: 15px;
+}
+button {
+padding: 10px 20px;
+color: white;
+border: none;
+border-radius: 4px;
+cursor: pointer;
+font-weight: bold;
+font-size: 16px;
+transition: background 0.2s;
+}
+.btn-primary { background-color: #28a745; }
+.btn-primary:hover:not(:disabled) { background-color: #218838; }
+.btn-google { background-color: #4285F4; }
+.btn-google:hover:not(:disabled) { background-color: #357ae8; }
+button:disabled {
+background-color: #555 !important;
+color: #aaa;
+cursor: not-allowed;
+}
+.result-section {
+margin-top: 25px;
+}
+textarea {
+width: 100%;
+height: 300px;
+background-color: #1e1e1e;
+color: #f0f0f0;
+border: 1px solid #444;
+border-radius: 6px;
+padding: 12px;
+box-sizing: border-box;
+resize: vertical;
+font-family: monospace;
+font-size: 14px;
+line-height: 1.5;
+}
+textarea:focus {
+outline: none;
+border-color: #3993ff;
+box-shadow: 0 0 5px rgba(57, 147, 255, 0.5);
+}
+.privacy-tip {
+font-size: 13px;
+color: #ffc107;
+background-color: rgba(255, 193, 7, 0.1);
+padding: 8px 12px;
+border-radius: 4px;
+margin-bottom: 15px;
+border-left: 4px solid #ffc107;
+}
+</style>
 </head>
 <body>
-    <header>
-        <a href="index.html" class="nav-link" data-i18n="nav_home">← 首頁</a>
-        <button id="lang-toggle" class="lang-btn" onclick="toggleLanguage()">English</button>
-    </header>
+<header>
+<a href="index.html" class="nav-link" data-i18n="nav_home">← 首頁</a>
+<button id="lang-toggle" class="lang-btn" onclick="toggleLanguage()">English</button>
+</header>
 
-    <div class="container">
-        <h2 data-i18n="pdf_ppt_heading">📄 本地 PDF/PPTX/Google簡報 轉文字工具</h2>
-        <div class="privacy-tip" data-i18n="pdf_ppt_privacy_tip">
-            🛡️ <b>安全提示：</b>本工具為 100% 純前端本地運算。強烈建議在<b>「瀏覽器無痕模式」</b>下使用，以防止瀏覽器外掛讀取記憶體或產生殘留。
-        </div>
-        
-        <p><span data-i18n="pdf_ppt_status_prefix">狀態：</span><span id="status" class="status" data-i18n="pdf_ppt_status_waiting">等待處理檔案...</span></p>
+<div class="container">
+<h2 data-i18n="pdf_ppt_heading">📄 本地 PDF/PPTX/Google簡報 轉文字工具</h2>
 
-        <div class="form-group">
-            <label for="uploader" data-i18n="pdf_ppt_label_method1">【方法一】選取本地 PDF 或 PPTX 檔案：</label>
-            <input type="file" id="uploader" accept=".pdf,.pptx">
-        </div>
+<div class="privacy-tip" data-i18n="pdf_ppt_privacy_tip">
+🛡️ <b>安全提示：</b>本工具為 100% 純前端本地運算。強烈建議在<b>「瀏覽器無痕模式」</b>下使用，以防止瀏覽器外掛讀取記憶體或產生殘留。
+</div>
 
-        <div class="form-group">
-            <label for="googleUrl" data-i18n="pdf_ppt_label_method2">【方法二】輸入 Google 簡報共用網址：</label>
-            <input type="text" id="googleUrl" data-i18n-placeholder="pdf_ppt_ph_google_url" placeholder="https://docs.google.com/presentation/d/.../edit...">
-        </div>
+<p><span data-i18n="pdf_ppt_status_prefix">狀態：</span><span id="status" class="status" data-i18n="pdf_ppt_status_waiting">等待處理檔案...</span></p>
 
-        <div class="btn-group">
-            <button id="extractBtn" class="btn-primary" disabled data-i18n="pdf_ppt_btn_extract">開始提取純文字</button>
-            <button id="googleBtn" class="btn-google" data-i18n="pdf_ppt_btn_google">從 Google 簡報匯入並提取</button>
-        </div>
+<div class="form-group">
+<label for="uploader" data-i18n="pdf_ppt_label_method1">【方法一】選取本地 PDF 或 PPTX 檔案：</label>
+<input type="file" id="uploader" accept=".pdf,.pptx">
+</div>
 
-        <div class="result-section">
-            <label style="font-weight: bold; display: block; margin-bottom: 8px; color: #b0b0b0;" data-i18n="pdf_ppt_label_result">提取結果：</label>
-            <textarea id="outputText" data-i18n-placeholder="pdf_ppt_ph_result" placeholder="提取出來的文字將會顯示在這裡..." readonly></textarea>
-        </div>
-    </div>
+<div class="form-group">
+<label data-i18n="pdf_ppt_label_method2">【方法二】從 Google 雲端硬碟選取簡報：</label>
+<div class="btn-group" style="margin-top:0;">
+<button id="googleBtn" class="btn-google" data-i18n="pdf_ppt_btn_google">開啟雲端硬碟選取檔案</button>
+</div>
+</div>
 
-    <script src="js/i18n.js"></script>
+<div class="btn-group">
+<button id="extractBtn" class="btn-primary" disabled data-i18n="pdf_ppt_btn_extract">開始提取純文字</button>
+</div>
 
-    <script>
-        // 請在此處填入您在 Google Cloud Console 申請的 Client ID
-        const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+<div class="result-section">
+<label style="font-weight: bold; display: block; margin-bottom: 8px; color: #b0b0b0;" data-i18n="pdf_ppt_label_result">提取結果：</label>
+<textarea id="outputText" data-i18n-placeholder="pdf_ppt_ph_result" placeholder="提取出來的文字將會顯示在這裡..." readonly></textarea>
+</div>
+</div>
 
-        const uploader = document.getElementById('uploader');
-        const googleUrlInput = document.getElementById('googleUrl');
-        const extractBtn = document.getElementById('extractBtn');
-        const googleBtn = document.getElementById('googleBtn');
-        const statusText = document.getElementById('status');
-        const outputText = document.getElementById('outputText');
+<script src="js/i18n.js"></script>
+<script>
+// 請在此處填入您在 Google Cloud Console 申請的 Client ID 與 API Key
+const GOOGLE_CLIENT_ID = '992882817551-18jnv0omsvagifn2f8ncc117jmt25k1q.apps.googleusercontent.com';
+const GOOGLE_API_KEY = 'AIzaSyDYqg5WRQUWqjs-ujezBeGts3TbJbBqsUc'; // Picker 需要，與 Client ID 分開申請
 
-        let tokenClient;
-        let accessToken = null;
-        let currentMode = 'local'; // 'local' 或 'google'
+// pdf.js worker 設定（必須指向與上方載入版本相同的 worker）
+if (typeof pdfjsLib !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
 
-        // 取得當前語言字典輔助函式
-        function getDict() {
-            const lang = localStorage.getItem('app_lang') || (navigator.language.startsWith('en') ? 'en' : 'zh');
-            return (typeof translations !== 'undefined' && translations[lang]) ? translations[lang] : {};
+const uploader = document.getElementById('uploader');
+const extractBtn = document.getElementById('extractBtn');
+const googleBtn = document.getElementById('googleBtn');
+const statusText = document.getElementById('status');
+const outputText = document.getElementById('outputText');
+
+let tokenClient;
+let accessToken = null;
+let pickerApiLoaded = false;
+let currentMode = 'local'; // 'local' 或 'google'
+let selectedGoogleFileId = null;
+
+// 取得當前語言字典輔助函式
+function getDict() {
+  const lang = localStorage.getItem('app_lang') || (navigator.language.startsWith('en') ? 'en' : 'zh');
+  return (typeof translations !== 'undefined' && translations[lang]) ? translations[lang] : {};
+}
+
+// 監聽本地檔案選取狀態
+uploader.addEventListener('change', () => {
+  const dict = getDict();
+  if (uploader.files.length > 0) {
+    extractBtn.disabled = false;
+    selectedGoogleFileId = null; // 清空另一種來源避免混淆
+    statusText.innerText = `${dict.pdf_ppt_status_selected || "已選取本地檔案："}${uploader.files[0].name}`;
+    currentMode = 'local';
+  } else {
+    extractBtn.disabled = true;
+    statusText.innerText = dict.pdf_ppt_status_waiting || "等待處理檔案...";
+  }
+});
+
+// 初始化 Google Identity Services API + Picker
+window.onload = function () {
+  if (GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+    console.warn("請記得將程式碼中的 GOOGLE_CLIENT_ID 替換為您在 GCP 申請的憑證金鑰。");
+  }
+  if (GOOGLE_API_KEY === 'YOUR_GOOGLE_API_KEY') {
+    console.warn("請記得將程式碼中的 GOOGLE_API_KEY 替換為您在 GCP 申請的 API 金鑰（Picker 需要）。");
+  }
+  try {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: 'https://www.googleapis.com/auth/drive.readonly',
+      callback: async (tokenResponse) => {
+        if (tokenResponse && tokenResponse.access_token) {
+          accessToken = tokenResponse.access_token;
+          openPicker();
         }
+      },
+    });
+  } catch (e) {
+    console.error("Google SDK 加載失敗，可能處於完全斷網環境或 file 協定限制下。", e);
+  }
 
-        // 監聽本地檔案選取狀態
-        uploader.addEventListener('change', () => {
-            const dict = getDict();
-            if (uploader.files.length > 0) {
-                extractBtn.disabled = false;
-                googleUrlInput.value = ''; // 清空另一個輸入框避免混淆
-                statusText.innerText = `${dict.pdf_ppt_status_selected || "已選取本地檔案："}${uploader.files[0].name}`;
-                currentMode = 'local';
-            } else {
-                extractBtn.disabled = true;
-                statusText.innerText = dict.pdf_ppt_status_waiting || "等待處理檔案...";
-            }
-        });
+  // gapi.js 是 async 載入，用輪詢等它就緒後再載入 picker 模組
+  const waitForGapi = setInterval(() => {
+    if (typeof gapi !== 'undefined') {
+      clearInterval(waitForGapi);
+      gapi.load('picker', () => { pickerApiLoaded = true; });
+    }
+  }, 200);
+};
 
-        // 監聽網址輸入狀態（若有輸入，清空本地上傳）
-        googleUrlInput.addEventListener('input', () => {
-            const dict = getDict();
-            if (googleUrlInput.value.trim() !== '') {
-                uploader.value = ''; 
-                extractBtn.disabled = true; // 隱藏本地按鈕的觸發
-                statusText.innerText = dict.pdf_ppt_status_detected_url || "已偵測到 Google 簡報網址，請點擊藍色匯入按鈕。";
-                currentMode = 'google';
-            }
-        });
+// 開啟 Google Picker，讓使用者直接在畫面中選取簡報檔案
+function openPicker() {
+  const dict = getDict();
+  if (!pickerApiLoaded) {
+    statusText.innerText = "選取視窗載入中，請稍候再點一次（首次需要一點時間載入 Google 函式庫）。";
+    return;
+  }
+  const view = new google.picker.DocsView(google.picker.ViewId.PRESENTATIONS)
+    .setIncludeFolders(true)
+    .setSelectFolderEnabled(false);
 
-        // 初始化 Google Identity Services API
-        window.onload = function () {
-            if (GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
-                console.warn("請記得將程式碼中的 GOOGLE_CLIENT_ID 替換為您在 GCP 申請的憑證金鑰。");
-            }
-            try {
-                tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: GOOGLE_CLIENT_ID,
-                    scope: 'https://www.googleapis.com/auth/drive.readonly',
-                    callback: async (tokenResponse) => {
-                        if (tokenResponse && tokenResponse.access_token) {
-                            accessToken = tokenResponse.access_token;
-                            await processGooglePresentation();
-                        }
-                    },
-                });
-            } catch (e) {
-                console.error("Google SDK 加載失敗，可能處於完全斷網環境或 file 協定限制下。", e);
-            }
-        };
+  const picker = new google.picker.PickerBuilder()
+    .addView(view)
+    .setOAuthToken(accessToken)
+    .setDeveloperKey(GOOGLE_API_KEY)
+    .setCallback(pickerCallback)
+    .build();
+  picker.setVisible(true);
+}
 
-        // 從網址中解析出 Google Drive File ID
-        function extractFileId(url) {
-            const matches = url.match(/\/d\/([^/]+)/);
-            return matches ? matches[1] : null;
-        }
+// Picker 選檔完成後的回呼
+async function pickerCallback(data) {
+  if (data.action === google.picker.Action.PICKED) {
+    const doc = data.docs[0];
+    selectedGoogleFileId = doc.id;
+    currentMode = 'google';
+    const dict = getDict();
+    statusText.innerText = `${dict.pdf_ppt_status_selected_cloud || "已選取雲端簡報："}${doc.name}`;
+    await processGooglePresentation();
+  }
+}
 
-        // 核心文字解析處理調度器
-        async function runCoreParser(fileData, isArrayBuffer = false) {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve("【本地解析核心成功】\n已成功將二進位資料導進純前端沙盒處理器。\n格式支援：PDF / PPTX 串接就緒。");
-                }, 1000);
-            });
-        }
+// ============ 核心解析器：真正解析 PDF / PPTX 內容 ============
 
-        // 【方法一處理】本地檔案提取
-        extractBtn.addEventListener('click', async () => {
-            const file = uploader.files[0];
-            if (!file) return;
+// 解析 PDF：用 pdf.js 逐頁抽文字
+async function parsePdf(arrayBuffer) {
+  if (typeof pdfjsLib === 'undefined') {
+    throw new Error('PDF 解析函式庫載入失敗，請確認網路可連線至 cdnjs（首次載入需要網路，之後可離線快取）。');
+  }
+  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+  const pdf = await loadingTask.promise;
+  let fullText = '';
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    const page = await pdf.getPage(pageNum);
+    const content = await page.getTextContent();
+    const pageText = content.items.map(item => item.str).join(' ');
+    fullText += `\n----- 第 ${pageNum} 頁 -----\n${pageText}\n`;
+  }
+  return fullText.trim() || '（PDF 內未偵測到可抽取的文字，可能是掃描圖片，需要 OCR。）';
+}
 
-            const dict = getDict();
-            statusText.innerText = dict.pdf_ppt_status_parsing || "正在本地極速解析中...";
-            setButtonsDisabled(true);
-            outputText.value = "";
+// 解析 PPTX：pptx 本質是 zip，抽出 ppt/slideN.xml 裡的 <a:t> 文字節點
+async function parsePptx(arrayBuffer) {
+  if (typeof JSZip === 'undefined') {
+    throw new Error('PPTX 解析函式庫載入失敗，請確認網路可連線至 cdnjs。');
+  }
+  const zip = await JSZip.loadAsync(arrayBuffer);
 
-            try {
-                let parsedText = await runCoreParser(file, false);
-                statusText.innerText = dict.pdf_ppt_status_success || "本地檔案文字提取成功！";
-                outputText.value = parsedText;
-            } catch (error) {
-                statusText.innerText = dict.pdf_ppt_status_error || "解析失敗，請確認檔案是否損壞。";
-                console.error(error);
-            } finally {
-                setButtonsDisabled(false);
-            }
-        });
+  // 找出所有投影片 xml，並依編號排序 (slide1.xml, slide2.xml ...)
+  const slideFiles = Object.keys(zip.files)
+    .filter(name => /^ppt\/slides\/slide\d+\.xml$/.test(name))
+    .sort((a, b) => {
+      const numA = parseInt(a.match(/slide(\d+)\.xml/)[1], 10);
+      const numB = parseInt(b.match(/slide(\d+)\.xml/)[1], 10);
+      return numA - numB;
+    });
 
-        // 【方法二處理】Google 簡報按鈕點擊
-        googleBtn.addEventListener('click', () => {
-            const dict = getDict();
-            const url = googleUrlInput.value.trim();
-            if (!url) {
-                statusText.innerText = dict.pdf_ppt_status_no_url || "請先輸入 Google 簡報網址！";
-                return;
-            }
-            if (!extractFileId(url)) {
-                statusText.innerText = dict.pdf_ppt_status_invalid_url || "無法解析該網址，請確認是否為標準的 Google 簡報連結。";
-                return;
-            }
+  if (slideFiles.length === 0) {
+    throw new Error('找不到投影片內容，檔案可能不是有效的 PPTX 格式。');
+  }
 
-            statusText.innerText = dict.pdf_ppt_status_requesting_auth || "正在要求 Google 帳號授權...";
-            
-            // 請求 Google Token，若已有 Token 則靜態刷新
-            if (accessToken === null) {
-                tokenClient.requestAccessToken({ prompt: 'consent' });
-            } else {
-                tokenClient.requestAccessToken({ prompt: '' });
-            }
-        });
+  let fullText = '';
+  for (let i = 0; i < slideFiles.length; i++) {
+    const xmlText = await zip.files[slideFiles[i]].async('string');
+    const textRuns = [...xmlText.matchAll(/<a:t>([\s\S]*?)<\/a:t>/g)]
+      .map(m => decodeXmlEntities(m[1]));
+    fullText += `\n----- 投影片 ${i + 1} -----\n${textRuns.join('\n')}\n`;
+  }
+  return fullText.trim();
+}
 
-        // 執行從 Google 下載並解析簡報
-        async function processGooglePresentation() {
-            const dict = getDict();
-            const fileId = extractFileId(googleUrlInput.value.trim());
-            statusText.innerText = dict.pdf_ppt_status_downloading_cloud || "已取得授權，正在從雲端安全導流二進位檔...";
-            setButtonsDisabled(true);
-            outputText.value = "";
+function decodeXmlEntities(str) {
+  return str
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'");
+}
 
-            // 使用 Drive API 導出功能，直接在雲端把簡報轉成 PPTX 丟回給前端瀏覽器
-            const exportUrl = `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=application/vnd.openxmlformats-officedocument.presentationml.presentation`;
+// 核心文字解析處理調度器：依副檔名/內容判斷用哪個解析器
+async function runCoreParser(arrayBuffer, fileName = '') {
+  const lowerName = fileName.toLowerCase();
+  if (lowerName.endsWith('.pdf')) {
+    return await parsePdf(arrayBuffer);
+  }
+  if (lowerName.endsWith('.pptx')) {
+    return await parsePptx(arrayBuffer);
+  }
+  // 若副檔名不明確（例如 Google 匯出流程沒有檔名），用檔頭魔數判斷
+  const header = new Uint8Array(arrayBuffer.slice(0, 4));
+  const isPdf = header[0] === 0x25 && header[1] === 0x50 && header[2] === 0x44 && header[3] === 0x46; // %PDF
+  const isZip = header[0] === 0x50 && header[1] === 0x4B; // PK.. (zip -> pptx)
+  if (isPdf) return await parsePdf(arrayBuffer);
+  if (isZip) return await parsePptx(arrayBuffer);
+  throw new Error('無法辨識檔案格式，僅支援 PDF 與 PPTX。');
+}
 
-            let arrayBuffer = null;
-            try {
-                const response = await fetch(exportUrl, {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
-                });
+// 【方法一處理】本地檔案提取
+extractBtn.addEventListener('click', async () => {
+  const file = uploader.files[0];
+  if (!file) return;
+  const dict = getDict();
+  statusText.innerText = dict.pdf_ppt_status_parsing || "正在本地極速解析中...";
+  setButtonsDisabled(true);
+  outputText.value = "";
 
-                if (!response.ok) throw new Error('雲端匯出失敗，請確認該簡報的權限是否允許唯讀。');
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const parsedText = await runCoreParser(arrayBuffer, file.name);
+    statusText.innerText = dict.pdf_ppt_status_success || "本地檔案文字提取成功！";
+    outputText.value = parsedText;
+  } catch (error) {
+    statusText.innerText = (dict.pdf_ppt_status_error || "解析失敗：") + error.message;
+    console.error(error);
+  } finally {
+    setButtonsDisabled(false);
+  }
+});
 
-                arrayBuffer = await response.arrayBuffer();
-                statusText.innerText = dict.pdf_ppt_status_parsing_cloud || "已直連接收檔案，正在本地解析文字...";
+// 【方法二處理】Google 簡報按鈕點擊：先確保已登入授權，再開啟 Picker 選檔
+googleBtn.addEventListener('click', () => {
+  const dict = getDict();
+  if (!tokenClient) {
+    statusText.innerText = "Google 登入功能尚未初始化成功（請確認網路連線，以及 GOOGLE_CLIENT_ID 是否已設定）。";
+    return;
+  }
+  statusText.innerText = dict.pdf_ppt_status_requesting_auth || "正在要求 Google 帳號授權...";
+  // 請求 Google Token；若已有 Token，callback 內會直接開 Picker
+  if (accessToken === null) {
+    tokenClient.requestAccessToken({ prompt: 'consent' });
+  } else {
+    openPicker();
+  }
+});
 
-                // 送進本地解析引擎
-                let parsedText = await runCoreParser(arrayBuffer, true);
-                
-                statusText.innerText = dict.pdf_ppt_status_google_success || "Google 簡報文字提取成功！";
-                outputText.value = parsedText;
+// 執行從 Google 下載並解析簡報
+async function processGooglePresentation() {
+  const dict = getDict();
+  const fileId = selectedGoogleFileId;
+  if (!fileId) return;
+  statusText.innerText = dict.pdf_ppt_status_downloading_cloud || "已取得授權，正在從雲端安全導流二進位檔...";
+  setButtonsDisabled(true);
+  outputText.value = "";
 
-            } catch (error) {
-                statusText.innerText = `錯誤: ${error.message}`;
-                console.error(error);
-            } finally {
-                // 🛡️ 資安優化：垃圾回收（Garbage Collection）防禦
-                arrayBuffer = null; 
-                setButtonsDisabled(false);
-            }
-        }
+  // 使用 Drive API 導出功能，直接在雲端把簡報轉成 PPTX 丟回給前端瀏覽器
+  const exportUrl = `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=application/vnd.openxmlformats-officedocument.presentationml.presentation`;
 
-        function setButtonsDisabled(disabled) {
-            extractBtn.disabled = disabled || currentMode !== 'local';
-            googleBtn.disabled = disabled;
-        }
-    </script>
+  let arrayBuffer = null;
+  try {
+    const response = await fetch(exportUrl, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+    if (!response.ok) {
+      if (response.status === 401) {
+        // token 過期，清掉讓下次重新授權
+        accessToken = null;
+      }
+      throw new Error('雲端匯出失敗，請確認該簡報的權限是否允許唯讀，或 Token 已過期。');
+    }
+    arrayBuffer = await response.arrayBuffer();
+    statusText.innerText = dict.pdf_ppt_status_parsing_cloud || "已直連接收檔案，正在本地解析文字...";
+
+    // 送進本地解析引擎（Google 匯出的固定是 pptx 格式）
+    const parsedText = await runCoreParser(arrayBuffer, 'google-export.pptx');
+    statusText.innerText = dict.pdf_ppt_status_google_success || "Google 簡報文字提取成功！";
+    outputText.value = parsedText;
+  } catch (error) {
+    statusText.innerText = `錯誤: ${error.message}`;
+    console.error(error);
+  } finally {
+    // 🛡️ 資安優化：垃圾回收（Garbage Collection）防禦
+    arrayBuffer = null;
+    setButtonsDisabled(false);
+  }
+}
+
+function setButtonsDisabled(disabled) {
+  extractBtn.disabled = disabled || currentMode !== 'local';
+  googleBtn.disabled = disabled;
+}
+</script>
 </body>
 </html>

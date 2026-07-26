@@ -33,16 +33,16 @@ An ultra-fast, 100% client-side, offline-capable web toolkit designed for person
 ## ✨ Key Features
 
 1. Absolute Privacy: No-backend architecture ensures files stay on your device.
-2. Lightning Fast: Zero network latency; performance depends entirely on your local hardware[cite: 22].
-3. Offline Ready: Works completely offline once loaded—perfect for air-gapped or high-security environments[cite: 22].
-4. Modern UI: Dark mode design with drag-and-drop file support[cite: 22].
+2. Lightning Fast: Zero network latency; performance depends entirely on your local hardware.
+3. Offline Ready: Works completely offline once loaded—perfect for air-gapped or high-security environments.
+4. Modern UI: Dark mode design with drag-and-drop file support.
 
 ---
 
 ## 📦 Tech Stack
 
-* Frontend: HTML5, CSS3, JavaScript (Vanilla ES6) [cite: 22]
-* Libraries: [pdf-lib](https://github.com/Hopding/pdf-lib), [SheetJS](https://github.com/SheetJS/sheetjs) [cite: 22]
-* Hosting: GitHub Pages [cite: 22]
+* Frontend: HTML5, CSS3, JavaScript (Vanilla ES6) 
+* Libraries: [pdf-lib](https://github.com/Hopding/pdf-lib), [SheetJS](https://github.com/SheetJS/sheetjs) 
+* Hosting: GitHub Pages 
 
 ⭐ If you find this project helpful, please consider giving it a Star! It really helps support the project.
